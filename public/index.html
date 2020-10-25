@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <title>Svelte app</title>
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/global.css" />
+  </head>
+
+  <body>
+    <div class="viewer"></div>
+    <script type="module">
+      import Embeddable from './dist/beyondnft-embeddable.es.js';
+      new Embeddable({
+        target: document.querySelector('.viewer'),
+        props: {
+          contract: '0x60f80121c31a0d46b5279700f9df786054aa5ee5',
+          tokenId: 49884,
+          network: 1, // 'mainnet', 'rinkeby', 'ropsten', 'goerli', 'kovan' or an integer
+          // resizable: false,
+          // width: '100px',
+          // height: '100px',
+        },
+      });
+    </script>
+  </body>
+</html>

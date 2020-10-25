@@ -1,0 +1,105 @@
+<script>
+  import { createEventDispatcher, onMount } from 'svelte';
+  import Sandbox from '../../../../../svelte/code-sandbox/dist/nftsandbox.es.js';
+
+  export let uris;
+  export let resizable;
+  export let width;
+  export let height;
+
+  const dispatch = createEventDispatcher();
+
+  let loaded = false;
+  let json;
+  let owner_properties = {};
+  let view;
+
+  $: {
+    if (loaded && view) {
+      if (json.interactive_nft) {
+        new Sandbox({
+          target: view,
+          props: {
+            data: json,
+            owner_properties,
+          },
+        });
+      }
+    }
+  }
+
+  onMount(async () => {
+    try {
+      let res;
+      if (uris.tokenURI) {
+        res = await fetch(uris.tokenURI);
+        json = await res.json();
+      }
+
+      if (uris.interactiveConfURI) {
+        res = await fetch(uris.interactiveConfURI);
+        owner_properties = await res.json();
+      }
+
+      loaded = true;
+    } catch (e) {
+      dispatch('error', 'Error while loading NFT JSONs.');
+    }
+  });
+</script>
+
+<style>
+  .interactive-wrapper.resizable {
+    position: relative;
+  }
+
+  em {
+    position: absolute;
+    top: 100%;
+    font-size: 0.8em;
+    right: 0;
+    z-index: 0;
+  }
+
+  .sandbox {
+    width: 100%;
+    height: 100%;
+  }
+
+  .interactive-wrapper.resizable .sandbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: 1;
+    resize: both;
+    overflow: auto;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+</style>
+
+{#if !loaded}
+  Loading...
+{:else}
+  <div
+    class="interactive-wrapper"
+    class:resizable
+    style={`width: ${width}; height: ${height}`}>
+    {#if json.interactive_nft}
+      <div class="sandbox" bind:this={view} />
+      {#if resizable}<em>resize if needed</em>{/if}
+    {:else}
+      <!-- TODO: integrate other types of NFT -->
+      <img
+        src={json.image.replace('ipfs://', 'https://gateway.ipfs.io/')}
+        alt={json.name} />
+    {/if}
+  </div>
+{/if}
