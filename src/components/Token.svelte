@@ -49,7 +49,7 @@
 </script>
 
 <style>
-  .interactive-wrapper.resizable {
+  .beyondembeddable__wrapper.resizable {
     position: relative;
   }
 
@@ -61,12 +61,12 @@
     z-index: 0;
   }
 
-  .sandbox {
+  .beyondembeddable__sandbox {
     width: 100%;
     height: 100%;
   }
 
-  .interactive-wrapper.resizable .sandbox {
+  .beyondembeddable__wrapper.resizable .beyondembeddable__sandbox {
     position: absolute;
     top: 0;
     left: 0;
@@ -89,15 +89,16 @@
   Loading...
 {:else}
   <div
-    class="interactive-wrapper"
+    class="beyondembeddable__wrapper"
     class:resizable
     style={`width: ${width}; height: ${height}`}>
     {#if json.interactive_nft}
-      <div class="sandbox" bind:this={view} />
+      <div class="beyondembeddable__sandbox" bind:this={view} />
       {#if resizable}<em>resize if needed</em>{/if}
     {:else}
       <!-- TODO: integrate other types of NFT -->
       <img
+        class="beyondembeddable__fallback"
         src={json.image.replace('ipfs://', 'https://gateway.ipfs.io/')}
         alt={json.name} />
     {/if}

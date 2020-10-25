@@ -43,9 +43,9 @@
   }
 </script>
 
-<div>
+<div class="beyondembeddable">
   {#if error}
-    <p>{error}</p>
+    <p class="beyondembeddable__error">{error}</p>
   {:else if loaded}
     <Token
       {uris}
