@@ -26,7 +26,7 @@ It requires a `target` (the html element to which it should attach) and an objec
 ```html
 <div class="viewer"></div>
 <script type="module">
-  import Embeddable from 'https://unpkg.com/beyondnft/embeddable.es.js';
+  import Embeddable from 'https://cdnjs.cloudflare.com/ajax/libs/beyondnft/embeddable.es.min.js';
   new Embeddable({
     target: document.querySelector('.viewer'),
     props: {
