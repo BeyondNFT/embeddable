@@ -1,6 +1,6 @@
 {
   "name": "@beyondnft/embeddable",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "svelte": "src/main.js",
   "module": "dist/embeddable.es.min.js",
   "main": "dist/embeddable.umd.min.js",
