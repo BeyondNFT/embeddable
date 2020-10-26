@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
-  import Sandbox from '../../../../../svelte/code-sandbox/dist/nftsandbox.es.js';
+  import Sandbox from '@beyondnft/sandbox';
 
   export let uris;
   export let resizable;

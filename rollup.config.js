@@ -8,7 +8,7 @@ import json from '@rollup/plugin-json';
 import pkg from './package.json';
 
 const name = pkg.name
-  .replace(/^(@\S+\/)?(svelte-)?(\S+)/, '$3')
+  .replace(/^(@\S+\/)?(beyondnft)?(\S+)/, '$3')
   .replace(/^\w/, (m) => m.toUpperCase())
   .replace(/-\w/g, (m) => m[1].toUpperCase());
 
@@ -40,12 +40,29 @@ function serve() {
 }
 
 const output = [
-  { file: pkg.module, format: 'es' },
-  { file: pkg.main, format: 'umd', name },
+  { file: pkg.module.replace('.min.js', '.js'), format: 'es' },
+  { file: pkg.main.replace('.min.js', '.js'), format: 'umd', name },
 ];
 
 if (!production) {
-  output.push({ file: 'public/' + pkg.module, format: 'es' });
+  output.push({
+    file: 'public/' + pkg.module.replace('.min.js', '.js'),
+    format: 'es',
+  });
+} else {
+  output.push(
+    {
+      file: pkg.module,
+      format: 'es',
+      plugins: [production && terser()],
+    },
+    {
+      file: pkg.main,
+      format: 'umd',
+      name,
+      plugins: [production && terser()],
+    }
+  );
 }
 
 export default {
@@ -58,11 +75,6 @@ export default {
       dev: !production,
     }),
 
-    // If you have external dependencies installed from
-    // npm, you'll most likely need these plugins. In
-    // some cases you'll need additional configuration -
-    // consult the documentation for details:
-    // https://github.com/rollup/plugins/tree/master/packages/commonjs
     resolve({
       browser: true,
       dedupe: ['svelte'],
@@ -76,10 +88,6 @@ export default {
     // Watch the `public` directory and refresh the
     // browser on changes when not in production
     !production && livereload('public'),
-
-    // If we're building for production (npm run build
-    // instead of npm run dev), minify
-    production && terser(),
   ],
   watch: {
     clearScreen: false,

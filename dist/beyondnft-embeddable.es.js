@@ -1,11 +1,4 @@
-
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(window.document);
 function noop() { }
-function add_location(element, file, line, column, char) {
-    element.__svelte_meta = {
-        loc: { file, line, column, char }
-    };
-}
 function run(fn) {
     return fn();
 }
@@ -54,6 +47,11 @@ function attr(node, attribute, value) {
 }
 function children(element) {
     return Array.from(element.childNodes);
+}
+function set_data(text, data) {
+    data = '' + data;
+    if (text.wholeText !== data)
+        text.data = data;
 }
 function toggle_class(element, name, toggle) {
     element.classList[toggle ? 'add' : 'remove'](name);
@@ -311,59 +309,6 @@ class SvelteComponent {
             this.$$.skip_bound = false;
         }
     }
-}
-
-function dispatch_dev(type, detail) {
-    document.dispatchEvent(custom_event(type, Object.assign({ version: '3.29.4' }, detail)));
-}
-function append_dev(target, node) {
-    dispatch_dev('SvelteDOMInsert', { target, node });
-    append(target, node);
-}
-function insert_dev(target, node, anchor) {
-    dispatch_dev('SvelteDOMInsert', { target, node, anchor });
-    insert(target, node, anchor);
-}
-function detach_dev(node) {
-    dispatch_dev('SvelteDOMRemove', { node });
-    detach(node);
-}
-function attr_dev(node, attribute, value) {
-    attr(node, attribute, value);
-    if (value == null)
-        dispatch_dev('SvelteDOMRemoveAttribute', { node, attribute });
-    else
-        dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
-}
-function set_data_dev(text, data) {
-    data = '' + data;
-    if (text.wholeText === data)
-        return;
-    dispatch_dev('SvelteDOMSetData', { node: text, data });
-    text.data = data;
-}
-function validate_slots(name, slot, keys) {
-    for (const slot_key of Object.keys(slot)) {
-        if (!~keys.indexOf(slot_key)) {
-            console.warn(`<${name}> received an unexpected slot "${slot_key}".`);
-        }
-    }
-}
-class SvelteComponentDev extends SvelteComponent {
-    constructor(options) {
-        if (!options || (!options.target && !options.$$inline)) {
-            throw new Error("'target' is a required option");
-        }
-        super();
-    }
-    $destroy() {
-        super.$destroy();
-        this.$destroy = () => {
-            console.warn('Component was already destroyed'); // eslint-disable-line no-console
-        };
-    }
-    $capture_state() { }
-    $inject_state() { }
 }
 
 /**
@@ -635,978 +580,19 @@ var Networks = {
   kovan: 0x2a,
 };
 
-function noop$1() { }
-function run$1(fn) {
-    return fn();
-}
-function blank_object$1() {
-    return Object.create(null);
-}
-function run_all$1(fns) {
-    fns.forEach(run$1);
-}
-function is_function$1(thing) {
-    return typeof thing === 'function';
-}
-function safe_not_equal$1(a, b) {
-    return a != a ? b == b : a !== b || ((a && typeof a === 'object') || typeof a === 'function');
-}
-function is_empty$1(obj) {
-    return Object.keys(obj).length === 0;
-}
-function null_to_empty(value) {
-    return value == null ? '' : value;
-}
-
-function append$1(target, node) {
-    target.appendChild(node);
-}
-function insert$1(target, node, anchor) {
-    target.insertBefore(node, anchor || null);
-}
-function detach$1(node) {
-    node.parentNode.removeChild(node);
-}
-function element$1(name) {
-    return document.createElement(name);
-}
-function text$1(data) {
-    return document.createTextNode(data);
-}
-function empty$1() {
-    return text$1('');
-}
-function attr$1(node, attribute, value) {
-    if (value == null)
-        node.removeAttribute(attribute);
-    else if (node.getAttribute(attribute) !== value)
-        node.setAttribute(attribute, value);
-}
-function children$1(element) {
-    return Array.from(element.childNodes);
-}
-function custom_event$1(type, detail) {
-    const e = document.createEvent('CustomEvent');
-    e.initCustomEvent(type, false, false, detail);
-    return e;
-}
-
-let current_component$1;
-function set_current_component$1(component) {
-    current_component$1 = component;
-}
-function get_current_component$1() {
-    if (!current_component$1)
-        throw new Error(`Function called outside component initialization`);
-    return current_component$1;
-}
-function onMount$1(fn) {
-    get_current_component$1().$$.on_mount.push(fn);
-}
-function createEventDispatcher$1() {
-    const component = get_current_component$1();
-    return (type, detail) => {
-        const callbacks = component.$$.callbacks[type];
-        if (callbacks) {
-            // TODO are there situations where events could be dispatched
-            // in a server (non-DOM) environment?
-            const event = custom_event$1(type, detail);
-            callbacks.slice().forEach(fn => {
-                fn.call(component, event);
-            });
-        }
-    };
-}
-// TODO figure out if we still want to support
-// shorthand events, or if we want to implement
-// a real bubbling mechanism
-function bubble(component, event) {
-    const callbacks = component.$$.callbacks[event.type];
-    if (callbacks) {
-        callbacks.slice().forEach(fn => fn(event));
-    }
-}
-
-const dirty_components$1 = [];
-const binding_callbacks$1 = [];
-const render_callbacks$1 = [];
-const flush_callbacks$1 = [];
-const resolved_promise$1 = Promise.resolve();
-let update_scheduled$1 = false;
-function schedule_update$1() {
-    if (!update_scheduled$1) {
-        update_scheduled$1 = true;
-        resolved_promise$1.then(flush$1);
-    }
-}
-function add_render_callback$1(fn) {
-    render_callbacks$1.push(fn);
-}
-function add_flush_callback(fn) {
-    flush_callbacks$1.push(fn);
-}
-let flushing$1 = false;
-const seen_callbacks$1 = new Set();
-function flush$1() {
-    if (flushing$1)
-        return;
-    flushing$1 = true;
-    do {
-        // first, call beforeUpdate functions
-        // and update components
-        for (let i = 0; i < dirty_components$1.length; i += 1) {
-            const component = dirty_components$1[i];
-            set_current_component$1(component);
-            update$1(component.$$);
-        }
-        set_current_component$1(null);
-        dirty_components$1.length = 0;
-        while (binding_callbacks$1.length)
-            binding_callbacks$1.pop()();
-        // then, once components are updated, call
-        // afterUpdate functions. This may cause
-        // subsequent updates...
-        for (let i = 0; i < render_callbacks$1.length; i += 1) {
-            const callback = render_callbacks$1[i];
-            if (!seen_callbacks$1.has(callback)) {
-                // ...so guard against infinite loops
-                seen_callbacks$1.add(callback);
-                callback();
-            }
-        }
-        render_callbacks$1.length = 0;
-    } while (dirty_components$1.length);
-    while (flush_callbacks$1.length) {
-        flush_callbacks$1.pop()();
-    }
-    update_scheduled$1 = false;
-    flushing$1 = false;
-    seen_callbacks$1.clear();
-}
-function update$1($$) {
-    if ($$.fragment !== null) {
-        $$.update();
-        run_all$1($$.before_update);
-        const dirty = $$.dirty;
-        $$.dirty = [-1];
-        $$.fragment && $$.fragment.p($$.ctx, dirty);
-        $$.after_update.forEach(add_render_callback$1);
-    }
-}
-const outroing$1 = new Set();
-let outros$1;
-function group_outros$1() {
-    outros$1 = {
-        r: 0,
-        c: [],
-        p: outros$1 // parent group
-    };
-}
-function check_outros$1() {
-    if (!outros$1.r) {
-        run_all$1(outros$1.c);
-    }
-    outros$1 = outros$1.p;
-}
-function transition_in$1(block, local) {
-    if (block && block.i) {
-        outroing$1.delete(block);
-        block.i(local);
-    }
-}
-function transition_out$1(block, local, detach, callback) {
-    if (block && block.o) {
-        if (outroing$1.has(block))
-            return;
-        outroing$1.add(block);
-        outros$1.c.push(() => {
-            outroing$1.delete(block);
-            if (callback) {
-                if (detach)
-                    block.d(1);
-                callback();
-            }
-        });
-        block.o(local);
-    }
-}
-
-function bind(component, name, callback) {
-    const index = component.$$.props[name];
-    if (index !== undefined) {
-        component.$$.bound[index] = callback;
-        callback(component.$$.ctx[index]);
-    }
-}
-function create_component$1(block) {
-    block && block.c();
-}
-function mount_component$1(component, target, anchor) {
-    const { fragment, on_mount, on_destroy, after_update } = component.$$;
-    fragment && fragment.m(target, anchor);
-    // onMount happens before the initial afterUpdate
-    add_render_callback$1(() => {
-        const new_on_destroy = on_mount.map(run$1).filter(is_function$1);
-        if (on_destroy) {
-            on_destroy.push(...new_on_destroy);
-        }
-        else {
-            // Edge case - component was destroyed immediately,
-            // most likely as a result of a binding initialising
-            run_all$1(new_on_destroy);
-        }
-        component.$$.on_mount = [];
-    });
-    after_update.forEach(add_render_callback$1);
-}
-function destroy_component$1(component, detaching) {
-    const $$ = component.$$;
-    if ($$.fragment !== null) {
-        run_all$1($$.on_destroy);
-        $$.fragment && $$.fragment.d(detaching);
-        // TODO null out other refs, including component.$$ (but need to
-        // preserve final state?)
-        $$.on_destroy = $$.fragment = null;
-        $$.ctx = [];
-    }
-}
-function make_dirty$1(component, i) {
-    if (component.$$.dirty[0] === -1) {
-        dirty_components$1.push(component);
-        schedule_update$1();
-        component.$$.dirty.fill(0);
-    }
-    component.$$.dirty[(i / 31) | 0] |= (1 << (i % 31));
-}
-function init$1(component, options, instance, create_fragment, not_equal, props, dirty = [-1]) {
-    const parent_component = current_component$1;
-    set_current_component$1(component);
-    const prop_values = options.props || {};
-    const $$ = component.$$ = {
-        fragment: null,
-        ctx: null,
-        // state
-        props,
-        update: noop$1,
-        not_equal,
-        bound: blank_object$1(),
-        // lifecycle
-        on_mount: [],
-        on_destroy: [],
-        before_update: [],
-        after_update: [],
-        context: new Map(parent_component ? parent_component.$$.context : []),
-        // everything else
-        callbacks: blank_object$1(),
-        dirty,
-        skip_bound: false
-    };
-    let ready = false;
-    $$.ctx = instance
-        ? instance(component, prop_values, (i, ret, ...rest) => {
-            const value = rest.length ? rest[0] : ret;
-            if ($$.ctx && not_equal($$.ctx[i], $$.ctx[i] = value)) {
-                if (!$$.skip_bound && $$.bound[i])
-                    $$.bound[i](value);
-                if (ready)
-                    make_dirty$1(component, i);
-            }
-            return ret;
-        })
-        : [];
-    $$.update();
-    ready = true;
-    run_all$1($$.before_update);
-    // `false` as a special case of no DOM component
-    $$.fragment = create_fragment ? create_fragment($$.ctx) : false;
-    if (options.target) {
-        if (options.hydrate) {
-            const nodes = children$1(options.target);
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            $$.fragment && $$.fragment.l(nodes);
-            nodes.forEach(detach$1);
-        }
-        else {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            $$.fragment && $$.fragment.c();
-        }
-        if (options.intro)
-            transition_in$1(component.$$.fragment);
-        mount_component$1(component, options.target, options.anchor);
-        flush$1();
-    }
-    set_current_component$1(parent_component);
-}
-class SvelteComponent$1 {
-    $destroy() {
-        destroy_component$1(this, 1);
-        this.$destroy = noop$1;
-    }
-    $on(type, callback) {
-        const callbacks = (this.$$.callbacks[type] || (this.$$.callbacks[type] = []));
-        callbacks.push(callback);
-        return () => {
-            const index = callbacks.indexOf(callback);
-            if (index !== -1)
-                callbacks.splice(index, 1);
-        };
-    }
-    $set($$props) {
-        if (this.$$set && !is_empty$1($$props)) {
-            this.$$.skip_bound = true;
-            this.$$set($$props);
-            this.$$.skip_bound = false;
-        }
-    }
-}
-
-let uid = 1;
-
-function handle_command_message(cmd_data) {
-  let action = cmd_data.action;
-  let id = cmd_data.cmd_id;
-  let handler = this.pending_cmds.get(id);
-
-  if (handler) {
-    this.pending_cmds.delete(id);
-    if (action === 'cmd_error') {
-      let { message, stack } = cmd_data;
-      let e = new Error(message);
-      e.stack = stack;
-      handler.reject(e);
-    }
-
-    if (action === 'cmd_ok') {
-      handler.resolve(cmd_data.args || 'ok');
-    }
-  } else {
-    console.error('command not found', id, cmd_data, [
-      ...this.pending_cmds.keys(),
-    ]);
-  }
-}
-
-function handle_repl_message(event) {
-  if (event.source !== this.iframe.contentWindow) return;
-  const { action, args } = event.data;
-
-  switch (action) {
-    case 'cmd_error':
-    case 'cmd_ok':
-      return handle_command_message.call(this, event.data);
-    case 'fetch_progress':
-      return this.handlers.on_fetch_progress(args.remaining);
-    case 'error':
-      return this.handlers.on_error(event.data);
-    case 'unhandledrejection':
-      return this.handlers.on_unhandled_rejection(event.data);
-    case 'console':
-      return this.handlers.on_console(event.data);
-    case 'console_group':
-      return this.handlers.on_console_group(event.data);
-    case 'console_group_collapsed':
-      return this.handlers.on_console_group_collapsed(event.data);
-    case 'console_group_end':
-      return this.handlers.on_console_group_end(event.data);
-    default:
-      const handler = `on_${action}`;
-      if ('function' === typeof this.handlers[handler]) {
-        this.handlers[handler](event.data);
-      }
-  }
-}
-
-class Proxy$2 {
-  constructor(iframe, handlers) {
-    this.iframe = iframe;
-    this.handlers = handlers;
-
-    this.pending_cmds = new Map();
-
-    this.handle_event = handle_repl_message.bind(this);
-    window.addEventListener('message', this.handle_event, false);
-  }
-
-  destroy() {
-    window.removeEventListener('message', this.handle_event);
-  }
-
-  iframe_command(action, args) {
-    return new Promise((resolve, reject) => {
-      const cmd_id = uid++;
-
-      this.pending_cmds.set(cmd_id, { resolve, reject });
-
-      this.iframe.contentWindow.postMessage({ action, cmd_id, args }, '*');
-    });
-  }
-
-  eval(script) {
-    return this.iframe_command('eval', { script });
-  }
-
-  add_script(script) {
-    return this.iframe_command('add_script', script);
-  }
-
-  add_script_content(script) {
-    return this.iframe_command('add_script_content', script);
-  }
-
-  add_style(style) {
-    return this.iframe_command('add_style', style);
-  }
-
-  add_asset(asset) {
-    return this.iframe_command('add_asset', asset);
-  }
-
-  handle_links() {
-    return this.iframe_command('catch_clicks', {});
-  }
-}
-
-var srcdoc = "<!DOCTYPE html>\n<html>\n  <head>\n    <style>\n      \n    </style>\n\n    <script>\n      (function () {\n        function handle_message(ev) {\n          let { action, cmd_id } = ev.data;\n          const send_message = (payload) =>\n            parent.postMessage({ ...payload }, ev.origin);\n\n          const send_reply = (payload) => send_message({ ...payload, cmd_id });\n          const send_ok = (args) => send_reply({ action: 'cmd_ok', args });\n          const send_error = (message, stack) =>\n            send_reply({ action: 'cmd_error', message, stack });\n\n          if (action === 'eval') {\n            try {\n              const { script } = ev.data.args;\n              eval(script);\n              send_ok();\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'add_script') {\n            try {\n              const script = document.createElement('script');\n              script.src = ev.data.args;\n              script.onload = () => send_ok();\n              document.body.appendChild(script);\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'add_script_content') {\n            try {\n              const script = document.createElement('script');\n              script.text = ev.data.args;\n              script.type = 'text/javascript';\n              document.body.appendChild(script);\n              send_ok();\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'add_style') {\n            try {\n              const link = document.createElement('link');\n              link.rel = 'stylesheet';\n              link.href = ev.data.args;\n              link.onload = () => send_ok();\n              document.body.appendChild(link);\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'catch_clicks') {\n            try {\n              const top_origin = ev.origin;\n              document.body.addEventListener('click', (event) => {\n                if (event.which !== 1) return;\n                if (event.metaKey || event.ctrlKey || event.shiftKey) return;\n                if (event.defaultPrevented) return;\n\n                // ensure target is a link\n                let el = event.target;\n                while (el && el.nodeName !== 'A') el = el.parentNode;\n                if (!el || el.nodeName !== 'A') return;\n\n                if (\n                  el.hasAttribute('download') ||\n                  el.getAttribute('rel') === 'external' ||\n                  el.target\n                )\n                  return;\n\n                event.preventDefault();\n\n                if (el.href.startsWith(top_origin)) {\n                  const url = new URL(el.href);\n                  if (url.hash[0] === '#') {\n                    window.location.hash = url.hash;\n                    return;\n                  }\n                }\n\n                window.open(el.href, '_blank');\n              });\n              send_ok();\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n        }\n\n        window.addEventListener('message', handle_message, false);\n\n        window.onerror = function (msg, url, lineNo, columnNo, error) {\n          try {\n            parent.postMessage({ action: 'error', value: error }, '*');\n          } catch (e) {\n            parent.postMessage({ action: 'error', value: msg }, '*');\n            parent.postMessage({ action: 'error', value: error }, '*');\n          }\n        };\n\n        window.addEventListener('unhandledrejection', (event) => {\n          parent.postMessage(\n            { action: 'unhandledrejection', value: event.reason },\n            '*'\n          );\n        });\n\n        let previous = { level: null, args: null };\n\n        ['clear', 'log', 'info', 'dir', 'warn', 'error', 'table'].forEach(\n          (level) => {\n            const original = console[level];\n            console[level] = (...args) => {\n              const stringifiedArgs = stringify(args);\n              if (\n                previous.level === level &&\n                previous.args &&\n                previous.args === stringifiedArgs\n              ) {\n                parent.postMessage(\n                  { action: 'console', level, duplicate: true },\n                  '*'\n                );\n              } else {\n                previous = { level, args: stringifiedArgs };\n\n                try {\n                  parent.postMessage({ action: 'console', level, args }, '*');\n                } catch (err) {\n                  parent.postMessage(\n                    { action: 'console', level: 'unclonable' },\n                    '*'\n                  );\n                }\n              }\n\n              original(...args);\n            };\n          }\n        );\n\n        [\n          { method: 'group', action: 'console_group' },\n          { method: 'groupEnd', action: 'console_group_end' },\n          { method: 'groupCollapsed', action: 'console_group_collapsed' },\n        ].forEach((group_action) => {\n          const original = console[group_action.method];\n          console[group_action.method] = (label) => {\n            parent.postMessage({ action: group_action.action, label }, '*');\n\n            original(label);\n          };\n        });\n\n        const timers = new Map();\n        const original_time = console.time;\n        const original_timelog = console.timeLog;\n        const original_timeend = console.timeEnd;\n\n        console.time = (label = 'default') => {\n          original_time(label);\n          timers.set(label, performance.now());\n        };\n        console.timeLog = (label = 'default') => {\n          original_timelog(label);\n          const now = performance.now();\n          if (timers.has(label)) {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-log',\n                args: [`${label}: ${now - timers.get(label)}ms`],\n              },\n              '*'\n            );\n          } else {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-warn',\n                args: [`Timer '${label}' does not exist`],\n              },\n              '*'\n            );\n          }\n        };\n        console.timeEnd = (label = 'default') => {\n          original_timeend(label);\n          const now = performance.now();\n          if (timers.has(label)) {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-log',\n                args: [`${label}: ${now - timers.get(label)}ms`],\n              },\n              '*'\n            );\n          } else {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-warn',\n                args: [`Timer '${label}' does not exist`],\n              },\n              '*'\n            );\n          }\n          timers.delete(label);\n        };\n\n        const original_assert = console.assert;\n        console.assert = (condition, ...args) => {\n          if (condition) {\n            const stack = new Error().stack;\n            parent.postMessage(\n              { action: 'console', level: 'assert', args, stack },\n              '*'\n            );\n          }\n          original_assert(condition, ...args);\n        };\n\n        const counter = new Map();\n        const original_count = console.count;\n        const original_countreset = console.countReset;\n\n        console.count = (label = 'default') => {\n          counter.set(label, (counter.get(label) || 0) + 1);\n          parent.postMessage(\n            {\n              action: 'console',\n              level: 'system-log',\n              args: `${label}: ${counter.get(label)}`,\n            },\n            '*'\n          );\n          original_count(label);\n        };\n\n        console.countReset = (label = 'default') => {\n          if (counter.has(label)) {\n            counter.set(label, 0);\n          } else {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-warn',\n                args: `Count for '${label}' does not exist`,\n              },\n              '*'\n            );\n          }\n          original_countreset(label);\n        };\n\n        const original_trace = console.trace;\n\n        console.trace = (...args) => {\n          const stack = new Error().stack;\n          parent.postMessage(\n            { action: 'console', level: 'trace', args, stack },\n            '*'\n          );\n          original_trace(...args);\n        };\n\n        function stringify(args) {\n          try {\n            return JSON.stringify(args);\n          } catch (error) {\n            return null;\n          }\n        }\n      })(this);\n\n      // remove alert, set window context\n      (() => {\n        const original_alert = window.alert;\n        window.alert = function () {};\n\n        window.context = {\n          nft_json: {},\n          config: {},\n        };\n      })(this);\n    </script>\n  </head>\n  <body>\n    <!-- NFTCODE -->\n  </body>\n</html>\n";
-
-function makeDependencies(dependencies) {
-  let result = '';
-  if (Array.isArray(dependencies)) {
-    for (const dependency of dependencies) {
-      const type = dependency.type;
-      if (type === 'script') {
-        result += `<script type="text/javascript" src="${dependency.url}"></script>`;
-      } else if (type === 'style') {
-        result += `<script type="text/javascript">
-						(() => {
-							const link = document.createElement('link');
-							link.rel = 'stylesheet';
-							link.href = "${dependency.url}";
-							document.body.appendChild(link);
-						})()
-					</script>`;
-      } else {
-        console.log(`Unknown dependency type ${type}`);
-      }
-    }
-  }
-
-  return result;
-}
-
-function scriptify(script) {
-  return `<script type="text/javascript">${script}</script>`;
-}
-
-/* src/Output/Viewer.svelte generated by Svelte v3.29.0 */
-
-function add_css() {
-	var style = element$1("style");
-	style.id = "svelte-1r57y0h-style";
-	style.textContent = ".iframe-container.svelte-1r57y0h{background-color:white;border:none;width:100%;height:100%}iframe.svelte-1r57y0h{width:100%;height:100%;border:none;display:block}.greyed-out.svelte-1r57y0h{filter:grayscale(50%) blur(1px);opacity:0.25}";
-	append$1(document.head, style);
-}
-
-function create_fragment(ctx) {
-	let div;
-	let iframe_1;
-	let iframe_1_sandbox_value;
-	let iframe_1_class_value;
-	let iframe_1_srcdoc_value;
-
-	return {
-		c() {
-			div = element$1("div");
-			iframe_1 = element$1("iframe");
-			attr$1(iframe_1, "title", "Sandbox");
-			attr$1(iframe_1, "sandbox", iframe_1_sandbox_value = `allow-scripts allow-pointer-lock allow-popups ${/*sandbox_props*/ ctx[0]}`);
-
-			attr$1(iframe_1, "class", iframe_1_class_value = "" + (null_to_empty(/*error*/ ctx[3] || pending || /*pending_imports*/ ctx[2]
-			? "greyed-out"
-			: "") + " svelte-1r57y0h"));
-
-			attr$1(iframe_1, "srcdoc", iframe_1_srcdoc_value = /*replaceCode*/ ctx[4](srcdoc));
-			attr$1(div, "class", "iframe-container svelte-1r57y0h");
-		},
-		m(target, anchor) {
-			insert$1(target, div, anchor);
-			append$1(div, iframe_1);
-			/*iframe_1_binding*/ ctx[9](iframe_1);
-		},
-		p(ctx, [dirty]) {
-			if (dirty & /*sandbox_props*/ 1 && iframe_1_sandbox_value !== (iframe_1_sandbox_value = `allow-scripts allow-pointer-lock allow-popups ${/*sandbox_props*/ ctx[0]}`)) {
-				attr$1(iframe_1, "sandbox", iframe_1_sandbox_value);
-			}
-
-			if (dirty & /*error, pending_imports*/ 12 && iframe_1_class_value !== (iframe_1_class_value = "" + (null_to_empty(/*error*/ ctx[3] || pending || /*pending_imports*/ ctx[2]
-			? "greyed-out"
-			: "") + " svelte-1r57y0h"))) {
-				attr$1(iframe_1, "class", iframe_1_class_value);
-			}
-		},
-		i: noop$1,
-		o: noop$1,
-		d(detaching) {
-			if (detaching) detach$1(div);
-			/*iframe_1_binding*/ ctx[9](null);
-		}
-	};
-}
-
-let pending = false;
-
-function instance($$self, $$props, $$invalidate) {
-	let { code = "" } = $$props;
-	let { proxy } = $$props;
-	let { json } = $$props;
-	let { owner_properties } = $$props;
-	let { sandbox_props = "" } = $$props;
-	const dispatch = createEventDispatcher$1();
-	let iframe;
-	let pending_imports = 0;
-	let error;
-	let logs = [];
-	let log_group_stack = [];
-	let current_log_group = logs;
-	let last_console_event;
-
-	onMount$1(() => {
-		$$invalidate(5, proxy = new Proxy$2(iframe,
-		{
-				on_fetch_progress: progress => {
-					$$invalidate(2, pending_imports = progress);
-				},
-				on_error: event => {
-					push_logs({ level: "error", args: [event.value] });
-					show_error(event.value);
-				},
-				on_unhandled_rejection: event => {
-					let error = event.value;
-					if (typeof error === "string") error = { message: error };
-					error.message = "Uncaught (in promise): " + error.message;
-					push_logs({ level: "error", args: [error] });
-					show_error(error);
-				},
-				on_console: log => {
-					if (log.level === "clear") {
-						clear_logs();
-						push_logs(log);
-					} else if (log.duplicate) {
-						increment_duplicate_log();
-					} else {
-						push_logs(log);
-					}
-				},
-				on_console_group: action => {
-					group_logs(action.label, false);
-				},
-				on_console_group_end: () => {
-					ungroup_logs();
-				},
-				on_console_group_collapsed: action => {
-					group_logs(action.label, true);
-				}
-			}));
-
-		iframe.addEventListener("load", () => {
-			proxy.handle_links();
-			!error && dispatch("loaded");
-		});
-
-		return () => {
-			proxy.destroy();
-		};
-	});
-
-	function makeDependencies$1() {
-		if (!json.interactive_nft) {
-			return "";
-		}
-
-		return makeDependencies(json.interactive_nft.dependencies);
-	}
-
-	function load_props() {
-		const props = {};
-
-		if (json.interactive_nft) {
-			if (Array.isArray(json.interactive_nft.properties)) {
-				// default props
-				for (const prop of json.interactive_nft.properties) {
-					props[prop.name] = prop.value;
-				}
-
-				// current owner props overriding default props
-				if (owner_properties && "object" === typeof owner_properties) {
-					for (const propName in owner_properties) {
-						props[propName] = owner_properties[propName];
-					}
-				}
-			}
-		}
-
-		return props;
-	}
-
-	function replaceCode(srcdoc) {
-		let content = makeDependencies$1();
-		const props = load_props();
-
-		const injectedProps = `
-      window.context.properties = JSON.parse('${JSON.stringify(props)}');
-    `;
-
-		const injectedJSON = `
-      window.context.nft_json = JSON.parse(${JSON.stringify(JSON.stringify(json))});
-    `;
-
-		content += scriptify(`
-      // specific p5 because it's causing troubles.
-      if (typeof p5 !== 'undefined' && p5.disableFriendlyErrors) {
-        p5.disableFriendlyErrors = true;
-        new p5();
-      }
-
-      ${injectedProps}
-      ${injectedJSON}
-    `);
-
-		content += code;
-		return srcdoc.replace("<!-- NFTCODE -->", content);
-	}
-
-	function show_error(e) {
-		$$invalidate(3, error = e);
-		dispatch("error", e);
-	}
-
-	function push_logs(log) {
-		current_log_group.push(last_console_event = log);
-		logs = logs;
-	}
-
-	function group_logs(label, collapsed) {
-		const group_log = {
-			level: "group",
-			label,
-			collapsed,
-			logs: []
-		};
-
-		current_log_group.push(group_log);
-		log_group_stack.push(current_log_group);
-		current_log_group = group_log.logs;
-		logs = logs;
-	}
-
-	function ungroup_logs() {
-		current_log_group = log_group_stack.pop();
-	}
-
-	function increment_duplicate_log() {
-		const last_log = current_log_group[current_log_group.length - 1];
-
-		if (last_log) {
-			last_log.count = (last_log.count || 1) + 1;
-			logs = logs;
-		} else {
-			last_console_event.count = 1;
-			push_logs(last_console_event);
-		}
-	}
-
-	function clear_logs() {
-		current_log_group = logs = [];
-	}
-
-	function iframe_1_binding($$value) {
-		binding_callbacks$1[$$value ? "unshift" : "push"](() => {
-			iframe = $$value;
-			$$invalidate(1, iframe);
-		});
-	}
-
-	$$self.$$set = $$props => {
-		if ("code" in $$props) $$invalidate(6, code = $$props.code);
-		if ("proxy" in $$props) $$invalidate(5, proxy = $$props.proxy);
-		if ("json" in $$props) $$invalidate(7, json = $$props.json);
-		if ("owner_properties" in $$props) $$invalidate(8, owner_properties = $$props.owner_properties);
-		if ("sandbox_props" in $$props) $$invalidate(0, sandbox_props = $$props.sandbox_props);
-	};
-
-	return [
-		sandbox_props,
-		iframe,
-		pending_imports,
-		error,
-		replaceCode,
-		proxy,
-		code,
-		json,
-		owner_properties,
-		iframe_1_binding
-	];
-}
-
-class Viewer extends SvelteComponent$1 {
-	constructor(options) {
-		super();
-		if (!document.getElementById("svelte-1r57y0h-style")) add_css();
-
-		init$1(this, options, instance, create_fragment, safe_not_equal$1, {
-			code: 6,
-			proxy: 5,
-			json: 7,
-			owner_properties: 8,
-			sandbox_props: 0
-		});
-	}
-}
-
-/* src/App.svelte generated by Svelte v3.29.0 */
-
-function create_else_block(ctx) {
-	let t;
-
-	return {
-		c() {
-			t = text$1("Loading...");
-		},
-		m(target, anchor) {
-			insert$1(target, t, anchor);
-		},
-		p: noop$1,
-		i: noop$1,
-		o: noop$1,
-		d(detaching) {
-			if (detaching) detach$1(t);
-		}
-	};
-}
-
-// (49:0) {#if code}
-function create_if_block(ctx) {
-	let viewer;
-	let updating_proxy;
-	let current;
-
-	function viewer_proxy_binding(value) {
-		/*viewer_proxy_binding*/ ctx[6].call(null, value);
-	}
-
-	let viewer_props = {
-		code: /*code*/ ctx[1],
-		owner_properties: /*owner_properties*/ ctx[2],
-		sandbox_props: /*sandbox_props*/ ctx[3],
-		json: /*data*/ ctx[0]
-	};
-
-	if (/*proxy*/ ctx[4] !== void 0) {
-		viewer_props.proxy = /*proxy*/ ctx[4];
-	}
-
-	viewer = new Viewer({ props: viewer_props });
-	binding_callbacks$1.push(() => bind(viewer, "proxy", viewer_proxy_binding));
-	viewer.$on("loaded", /*loaded_handler*/ ctx[7]);
-	viewer.$on("error", /*error_handler*/ ctx[8]);
-
-	return {
-		c() {
-			create_component$1(viewer.$$.fragment);
-		},
-		m(target, anchor) {
-			mount_component$1(viewer, target, anchor);
-			current = true;
-		},
-		p(ctx, dirty) {
-			const viewer_changes = {};
-			if (dirty & /*code*/ 2) viewer_changes.code = /*code*/ ctx[1];
-			if (dirty & /*owner_properties*/ 4) viewer_changes.owner_properties = /*owner_properties*/ ctx[2];
-			if (dirty & /*sandbox_props*/ 8) viewer_changes.sandbox_props = /*sandbox_props*/ ctx[3];
-			if (dirty & /*data*/ 1) viewer_changes.json = /*data*/ ctx[0];
-
-			if (!updating_proxy && dirty & /*proxy*/ 16) {
-				updating_proxy = true;
-				viewer_changes.proxy = /*proxy*/ ctx[4];
-				add_flush_callback(() => updating_proxy = false);
-			}
-
-			viewer.$set(viewer_changes);
-		},
-		i(local) {
-			if (current) return;
-			transition_in$1(viewer.$$.fragment, local);
-			current = true;
-		},
-		o(local) {
-			transition_out$1(viewer.$$.fragment, local);
-			current = false;
-		},
-		d(detaching) {
-			destroy_component$1(viewer, detaching);
-		}
-	};
-}
-
-function create_fragment$1(ctx) {
-	let current_block_type_index;
-	let if_block;
-	let if_block_anchor;
-	let current;
-	const if_block_creators = [create_if_block, create_else_block];
-	const if_blocks = [];
-
-	function select_block_type(ctx, dirty) {
-		if (/*code*/ ctx[1]) return 0;
-		return 1;
-	}
-
-	current_block_type_index = select_block_type(ctx);
-	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-
-	return {
-		c() {
-			if_block.c();
-			if_block_anchor = empty$1();
-		},
-		m(target, anchor) {
-			if_blocks[current_block_type_index].m(target, anchor);
-			insert$1(target, if_block_anchor, anchor);
-			current = true;
-		},
-		p(ctx, [dirty]) {
-			let previous_block_index = current_block_type_index;
-			current_block_type_index = select_block_type(ctx);
-
-			if (current_block_type_index === previous_block_index) {
-				if_blocks[current_block_type_index].p(ctx, dirty);
-			} else {
-				group_outros$1();
-
-				transition_out$1(if_blocks[previous_block_index], 1, 1, () => {
-					if_blocks[previous_block_index] = null;
-				});
-
-				check_outros$1();
-				if_block = if_blocks[current_block_type_index];
-
-				if (!if_block) {
-					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-					if_block.c();
-				}
-
-				transition_in$1(if_block, 1);
-				if_block.m(if_block_anchor.parentNode, if_block_anchor);
-			}
-		},
-		i(local) {
-			if (current) return;
-			transition_in$1(if_block);
-			current = true;
-		},
-		o(local) {
-			transition_out$1(if_block);
-			current = false;
-		},
-		d(detaching) {
-			if_blocks[current_block_type_index].d(detaching);
-			if (detaching) detach$1(if_block_anchor);
-		}
-	};
-}
-
-function instance$1($$self, $$props, $$invalidate) {
-	const dispatch = createEventDispatcher$1();
-	let { data = {} } = $$props;
-	let { code = "" } = $$props;
-	let { owner_properties = [] } = $$props;
-	let { sandbox_props = "" } = $$props;
-	let proxy = null;
-
-	function getProxy() {
-		return proxy;
-	}
-
-	if (!code && data.interactive_nft) {
-		if (data.interactive_nft.code) {
-			code = data.interactive_nft.code;
-
-			// so it won't be a problem when JSON.stringified
-			// and we don't need it in the code itself
-			data.interactive_nft.code = null;
-		} else if (data.interactive_nft.code_uri) {
-			fetch(data.interactive_nft.code_uri).then(res => res.text()).then(_code => $$invalidate(1, code = _code)).catch(e => {
-				dispatch("Error", new Error(`Error while fetching ${data.interactive_nft.code_uri}`));
-			});
-		} else {
-			dispatch("Error", new Error("You need to provide code for this NFT to run"));
-		}
-	} else {
-		dispatch("Error", new Error("You need to provide code for this NFT to run"));
-	}
-
-	function viewer_proxy_binding(value) {
-		proxy = value;
-		$$invalidate(4, proxy);
-	}
-
-	function loaded_handler(event) {
-		bubble($$self, event);
-	}
-
-	function error_handler(event) {
-		bubble($$self, event);
-	}
-
-	$$self.$$set = $$props => {
-		if ("data" in $$props) $$invalidate(0, data = $$props.data);
-		if ("code" in $$props) $$invalidate(1, code = $$props.code);
-		if ("owner_properties" in $$props) $$invalidate(2, owner_properties = $$props.owner_properties);
-		if ("sandbox_props" in $$props) $$invalidate(3, sandbox_props = $$props.sandbox_props);
-	};
-
-	return [
-		data,
-		code,
-		owner_properties,
-		sandbox_props,
-		proxy,
-		getProxy,
-		viewer_proxy_binding,
-		loaded_handler,
-		error_handler
-	];
-}
-
-class App extends SvelteComponent$1 {
-	constructor(options) {
-		super();
-
-		init$1(this, options, instance$1, create_fragment$1, safe_not_equal$1, {
-			data: 0,
-			code: 1,
-			owner_properties: 2,
-			sandbox_props: 3,
-			getProxy: 5
-		});
-	}
-
-	get getProxy() {
-		return this.$$.ctx[5];
-	}
-}
+function n(){}function e(n){return n()}function t(){return Object.create(null)}function o(n){n.forEach(e);}function r(n){return "function"==typeof n}function s(n,e){return n!=n?e==e:n!==e||n&&"object"==typeof n||"function"==typeof n}function a(n,e){n.appendChild(e);}function i(n,e,t){n.insertBefore(e,t||null);}function c(n){n.parentNode.removeChild(n);}function l(n){return document.createElement(n)}function d(n){return document.createTextNode(n)}function u(n,e,t){null==t?n.removeAttribute(e):n.getAttribute(e)!==t&&n.setAttribute(e,t);}function p(n,e,t){n.classList[t?"add":"remove"](e);}let f;function g(n){f=n;}function _(){if(!f)throw new Error("Function called outside component initialization");return f}function m(){const n=_();return (e,t)=>{const o=n.$$.callbacks[e];if(o){const r=function(n,e){const t=document.createEvent("CustomEvent");return t.initCustomEvent(n,!1,!1,e),t}(e,t);o.slice().forEach((e=>{e.call(n,r);}));}}}function h(n,e){const t=n.$$.callbacks[e.type];t&&t.slice().forEach((n=>n(e)));}const v=[],b=[],y=[],w=[],$=Promise.resolve();let k=!1;function x(n){y.push(n);}let E=!1;const j=new Set;function M(){if(!E){E=!0;do{for(let n=0;n<v.length;n+=1){const e=v[n];g(e),N(e.$$);}for(g(null),v.length=0;b.length;)b.pop()();for(let n=0;n<y.length;n+=1){const e=y[n];j.has(e)||(j.add(e),e());}y.length=0;}while(v.length);for(;w.length;)w.pop()();k=!1,E=!1,j.clear();}}function N(n){if(null!==n.fragment){n.update(),o(n.before_update);const e=n.dirty;n.dirty=[-1],n.fragment&&n.fragment.p(n.ctx,e),n.after_update.forEach(x);}}const A=new Set;let C;function L(n,e){n&&n.i&&(A.delete(n),n.i(e));}function O(n,e,t,o){if(n&&n.o){if(A.has(n))return;A.add(n),C.c.push((()=>{A.delete(n),o&&(t&&n.d(1),o());})),n.o(e);}}function S(n,t,s){const{fragment:a,on_mount:i,on_destroy:c,after_update:l}=n.$$;a&&a.m(t,s),x((()=>{const t=i.map(e).filter(r);c?c.push(...t):o(t),n.$$.on_mount=[];})),l.forEach(x);}function T(n,e){const t=n.$$;null!==t.fragment&&(o(t.on_destroy),t.fragment&&t.fragment.d(e),t.on_destroy=t.fragment=null,t.ctx=[]);}function F(n,e){-1===n.$$.dirty[0]&&(v.push(n),k||(k=!0,$.then(M)),n.$$.dirty.fill(0)),n.$$.dirty[e/31|0]|=1<<e%31;}function J(e,r,s,a,i,l,d=[-1]){const u=f;g(e);const p=r.props||{},_=e.$$={fragment:null,ctx:null,props:l,update:n,not_equal:i,bound:t(),on_mount:[],on_destroy:[],before_update:[],after_update:[],context:new Map(u?u.$$.context:[]),callbacks:t(),dirty:d,skip_bound:!1};let m=!1;if(_.ctx=s?s(e,p,((n,t,...o)=>{const r=o.length?o[0]:t;return _.ctx&&i(_.ctx[n],_.ctx[n]=r)&&(!_.skip_bound&&_.bound[n]&&_.bound[n](r),m&&F(e,n)),t})):[],_.update(),m=!0,o(_.before_update),_.fragment=!!a&&a(_.ctx),r.target){if(r.hydrate){const n=function(n){return Array.from(n.childNodes)}(r.target);_.fragment&&_.fragment.l(n),n.forEach(c);}else _.fragment&&_.fragment.c();r.intro&&L(e.$$.fragment),S(e,r.target,r.anchor),M();}g(u);}class P{$destroy(){T(this,1),this.$destroy=n;}$on(n,e){const t=this.$$.callbacks[n]||(this.$$.callbacks[n]=[]);return t.push(e),()=>{const n=t.indexOf(e);-1!==n&&t.splice(n,1);}}$set(n){var e;this.$$set&&(e=n,0!==Object.keys(e).length)&&(this.$$.skip_bound=!0,this.$$set(n),this.$$.skip_bound=!1);}}let D=1;function K(n){let e=n.action,t=n.cmd_id,o=this.pending_cmds.get(t);if(o){if(this.pending_cmds.delete(t),"cmd_error"===e){let{message:e,stack:t}=n,r=new Error(e);r.stack=t,o.reject(r);}"cmd_ok"===e&&o.resolve(n.args||"ok");}else console.error("command not found",t,n,[...this.pending_cmds.keys()]);}function R(n){if(n.source!==this.iframe.contentWindow)return;const{action:e,args:t}=n.data;switch(e){case"cmd_error":case"cmd_ok":return K.call(this,n.data);case"fetch_progress":return this.handlers.on_fetch_progress(t.remaining);case"error":return this.handlers.on_error(n.data);case"unhandledrejection":return this.handlers.on_unhandled_rejection(n.data);case"console":return this.handlers.on_console(n.data);case"console_group":return this.handlers.on_console_group(n.data);case"console_group_collapsed":return this.handlers.on_console_group_collapsed(n.data);case"console_group_end":return this.handlers.on_console_group_end(n.data);default:const o="on_"+e;"function"==typeof this.handlers[o]&&this.handlers[o](n.data);}}class U{constructor(n,e){this.iframe=n,this.handlers=e,this.pending_cmds=new Map,this.handle_event=R.bind(this),window.addEventListener("message",this.handle_event,!1);}destroy(){window.removeEventListener("message",this.handle_event);}iframe_command(n,e){return new Promise(((t,o)=>{const r=D++;this.pending_cmds.set(r,{resolve:t,reject:o}),this.iframe.contentWindow.postMessage({action:n,cmd_id:r,args:e},"*");}))}eval(n){return this.iframe_command("eval",{script:n})}add_script(n){return this.iframe_command("add_script",n)}add_script_content(n){return this.iframe_command("add_script_content",n)}add_style(n){return this.iframe_command("add_style",n)}add_asset(n){return this.iframe_command("add_asset",n)}handle_links(){return this.iframe_command("catch_clicks",{})}}function W(n){let e;return {c(){e=l("strong"),e.innerHTML="<em>Sorry, an error occured while executing the NFT.</em>",u(e,"class","beyondnft__sandbox__error svelte-1bwdt9k");},m(n,t){i(n,e,t);},d(n){n&&c(e);}}}function Y(e){let t,o,r,s,f,g=e[3]&&W();return {c(){t=l("div"),o=l("iframe"),f=d(" "),g&&g.c(),u(o,"title","Sandbox"),u(o,"sandbox",r="allow-scripts allow-pointer-lock allow-popups "+e[0]),u(o,"srcdoc",s=e[4]("<!DOCTYPE html>\n<html>\n  <head>\n    <style>\n      \n    </style>\n\n    <script>\n      (function () {\n        function handle_message(ev) {\n          let { action, cmd_id } = ev.data;\n          const send_message = (payload) =>\n            parent.postMessage({ ...payload }, ev.origin);\n\n          const send_reply = (payload) => send_message({ ...payload, cmd_id });\n          const send_ok = (args) => send_reply({ action: 'cmd_ok', args });\n          const send_error = (message, stack) =>\n            send_reply({ action: 'cmd_error', message, stack });\n\n          if (action === 'eval') {\n            try {\n              const { script } = ev.data.args;\n              eval(script);\n              send_ok();\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'add_script') {\n            try {\n              const script = document.createElement('script');\n              script.src = ev.data.args;\n              script.onload = () => send_ok();\n              document.body.appendChild(script);\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'add_script_content') {\n            try {\n              const script = document.createElement('script');\n              script.text = ev.data.args;\n              script.type = 'text/javascript';\n              document.body.appendChild(script);\n              send_ok();\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'add_style') {\n            try {\n              const link = document.createElement('link');\n              link.rel = 'stylesheet';\n              link.href = ev.data.args;\n              link.onload = () => send_ok();\n              document.body.appendChild(link);\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n\n          if (action === 'catch_clicks') {\n            try {\n              const top_origin = ev.origin;\n              document.body.addEventListener('click', (event) => {\n                if (event.which !== 1) return;\n                if (event.metaKey || event.ctrlKey || event.shiftKey) return;\n                if (event.defaultPrevented) return;\n\n                // ensure target is a link\n                let el = event.target;\n                while (el && el.nodeName !== 'A') el = el.parentNode;\n                if (!el || el.nodeName !== 'A') return;\n\n                if (\n                  el.hasAttribute('download') ||\n                  el.getAttribute('rel') === 'external' ||\n                  el.target\n                )\n                  return;\n\n                event.preventDefault();\n\n                if (el.href.startsWith(top_origin)) {\n                  const url = new URL(el.href);\n                  if (url.hash[0] === '#') {\n                    window.location.hash = url.hash;\n                    return;\n                  }\n                }\n\n                window.open(el.href, '_blank');\n              });\n              send_ok();\n            } catch (e) {\n              send_error(e.message, e.stack);\n            }\n          }\n        }\n\n        window.addEventListener('message', handle_message, false);\n\n        window.onerror = function (msg, url, lineNo, columnNo, error) {\n          try {\n            parent.postMessage({ action: 'error', value: error }, '*');\n          } catch (e) {\n            parent.postMessage({ action: 'error', value: msg }, '*');\n            parent.postMessage({ action: 'error', value: error }, '*');\n          }\n        };\n\n        window.addEventListener('unhandledrejection', (event) => {\n          parent.postMessage(\n            { action: 'unhandledrejection', value: event.reason },\n            '*'\n          );\n        });\n\n        let previous = { level: null, args: null };\n\n        ['clear', 'log', 'info', 'dir', 'warn', 'error', 'table'].forEach(\n          (level) => {\n            const original = console[level];\n            console[level] = (...args) => {\n              const stringifiedArgs = stringify(args);\n              if (\n                previous.level === level &&\n                previous.args &&\n                previous.args === stringifiedArgs\n              ) {\n                parent.postMessage(\n                  { action: 'console', level, duplicate: true },\n                  '*'\n                );\n              } else {\n                previous = { level, args: stringifiedArgs };\n\n                try {\n                  parent.postMessage({ action: 'console', level, args }, '*');\n                } catch (err) {\n                  parent.postMessage(\n                    { action: 'console', level: 'unclonable' },\n                    '*'\n                  );\n                }\n              }\n\n              original(...args);\n            };\n          }\n        );\n\n        [\n          { method: 'group', action: 'console_group' },\n          { method: 'groupEnd', action: 'console_group_end' },\n          { method: 'groupCollapsed', action: 'console_group_collapsed' },\n        ].forEach((group_action) => {\n          const original = console[group_action.method];\n          console[group_action.method] = (label) => {\n            parent.postMessage({ action: group_action.action, label }, '*');\n\n            original(label);\n          };\n        });\n\n        const timers = new Map();\n        const original_time = console.time;\n        const original_timelog = console.timeLog;\n        const original_timeend = console.timeEnd;\n\n        console.time = (label = 'default') => {\n          original_time(label);\n          timers.set(label, performance.now());\n        };\n        console.timeLog = (label = 'default') => {\n          original_timelog(label);\n          const now = performance.now();\n          if (timers.has(label)) {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-log',\n                args: [`${label}: ${now - timers.get(label)}ms`],\n              },\n              '*'\n            );\n          } else {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-warn',\n                args: [`Timer '${label}' does not exist`],\n              },\n              '*'\n            );\n          }\n        };\n        console.timeEnd = (label = 'default') => {\n          original_timeend(label);\n          const now = performance.now();\n          if (timers.has(label)) {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-log',\n                args: [`${label}: ${now - timers.get(label)}ms`],\n              },\n              '*'\n            );\n          } else {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-warn',\n                args: [`Timer '${label}' does not exist`],\n              },\n              '*'\n            );\n          }\n          timers.delete(label);\n        };\n\n        const original_assert = console.assert;\n        console.assert = (condition, ...args) => {\n          if (condition) {\n            const stack = new Error().stack;\n            parent.postMessage(\n              { action: 'console', level: 'assert', args, stack },\n              '*'\n            );\n          }\n          original_assert(condition, ...args);\n        };\n\n        const counter = new Map();\n        const original_count = console.count;\n        const original_countreset = console.countReset;\n\n        console.count = (label = 'default') => {\n          counter.set(label, (counter.get(label) || 0) + 1);\n          parent.postMessage(\n            {\n              action: 'console',\n              level: 'system-log',\n              args: `${label}: ${counter.get(label)}`,\n            },\n            '*'\n          );\n          original_count(label);\n        };\n\n        console.countReset = (label = 'default') => {\n          if (counter.has(label)) {\n            counter.set(label, 0);\n          } else {\n            parent.postMessage(\n              {\n                action: 'console',\n                level: 'system-warn',\n                args: `Count for '${label}' does not exist`,\n              },\n              '*'\n            );\n          }\n          original_countreset(label);\n        };\n\n        const original_trace = console.trace;\n\n        console.trace = (...args) => {\n          const stack = new Error().stack;\n          parent.postMessage(\n            { action: 'console', level: 'trace', args, stack },\n            '*'\n          );\n          original_trace(...args);\n        };\n\n        function stringify(args) {\n          try {\n            return JSON.stringify(args);\n          } catch (error) {\n            return null;\n          }\n        }\n      })(this);\n\n      // remove alert, set window context\n      (() => {\n        const original_alert = window.alert;\n        window.alert = function () {};\n\n        window.context = {\n          nft_json: {},\n          config: {},\n        };\n      })(this);\n    <\/script>\n  </head>\n  <body>\n    \x3c!-- NFTCODE --\x3e\n  </body>\n</html>\n")),u(o,"class","svelte-1bwdt9k"),p(o,"greyed-out",e[3]||z||e[2]),u(t,"class","beyondnft__sandbox svelte-1bwdt9k");},m(n,r){i(n,t,r),a(t,o),e[9](o),a(t,f),g&&g.m(t,null);},p(n,[e]){1&e&&r!==(r="allow-scripts allow-pointer-lock allow-popups "+n[0])&&u(o,"sandbox",r),12&e&&p(o,"greyed-out",n[3]||z||n[2]),n[3]?g||(g=W(),g.c(),g.m(t,null)):g&&(g.d(1),g=null);},i:n,o:n,d(n){n&&c(t),e[9](null),g&&g.d();}}}let z=!1;function B(n,e,t){let{code:o=""}=e,{proxy:r}=e,{json:s}=e,{owner_properties:a}=e,{sandbox_props:i=""}=e;const c=m();let l,d,u,p=0,f=[],g=[],h=f;var v;function y(){return s.interactive_nft?function(n){let e="";if(Array.isArray(n))for(const t of n){const n=t.type;"script"===n?e+=`<script type="text/javascript" src="${t.url}"><\/script>`:"style"===n?e+=`<script type="text/javascript">\n\t\t\t\t\t\t(() => {\n\t\t\t\t\t\t\tconst link = document.createElement('link');\n\t\t\t\t\t\t\tlink.rel = 'stylesheet';\n\t\t\t\t\t\t\tlink.href = "${t.url}";\n\t\t\t\t\t\t\tdocument.body.appendChild(link);\n\t\t\t\t\t\t})()\n\t\t\t\t\t<\/script>`:console.log("Unknown dependency type "+n);}return e}(s.interactive_nft.dependencies):""}function w(n){t(3,d=n),c("error",n);}function $(n){h.push(u=n),f=f;}function k(n,e){const t={level:"group",label:n,collapsed:e,logs:[]};h.push(t),g.push(h),h=t.logs,f=f;}return v=()=>(t(5,r=new U(l,{on_fetch_progress:n=>{t(2,p=n);},on_error:n=>{$({level:"error",args:[n.value]}),w(n.value);},on_unhandled_rejection:n=>{let e=n.value;"string"==typeof e&&(e={message:e}),e.message="Uncaught (in promise): "+e.message,$({level:"error",args:[e]}),w(e);},on_console:n=>{"clear"===n.level?(h=f=[],$(n)):n.duplicate?function(){const n=h[h.length-1];n?(n.count=(n.count||1)+1,f=f):(u.count=1,$(u));}():$(n);},on_console_group:n=>{k(n.label,!1);},on_console_group_end:()=>{h=g.pop();},on_console_group_collapsed:n=>{k(n.label,!0);}})),l.addEventListener("load",(()=>{r.handle_links(),!d&&c("loaded");})),()=>{r.destroy();}),_().$$.on_mount.push(v),n.$$set=n=>{"code"in n&&t(6,o=n.code),"proxy"in n&&t(5,r=n.proxy),"json"in n&&t(7,s=n.json),"owner_properties"in n&&t(8,a=n.owner_properties),"sandbox_props"in n&&t(0,i=n.sandbox_props);},[i,l,p,d,function(n){let e=y();const t=function(){const n={};if(s.interactive_nft&&Array.isArray(s.interactive_nft.properties)){let e={};a&&"object"==typeof a&&(e=a);for(const t of s.interactive_nft.properties)n[t.name]=t.value,void 0!==e[t.name]&&(n[t.name]=e[t.name]);}return n}(),r=`\n      window.context.properties = JSON.parse('${JSON.stringify(t)}');\n    `,i=`\n      window.context.nft_json = JSON.parse(${JSON.stringify(JSON.stringify(s))});\n    `;return e+=`<script type="text/javascript">${`\n      // specific p5 because it's causing troubles.\n      if (typeof p5 !== 'undefined' && p5.disableFriendlyErrors) {\n        p5.disableFriendlyErrors = true;\n        new p5();\n      }\n\n      ${r}\n      ${i}\n    `}<\/script>`,e+=o,n.replace("\x3c!-- NFTCODE --\x3e",e)},r,o,s,a,function(n){b[n?"unshift":"push"]((()=>{l=n,t(1,l);}));}]}class q extends P{constructor(n){var e;super(),document.getElementById("svelte-1bwdt9k-style")||((e=l("style")).id="svelte-1bwdt9k-style",e.textContent=".beyondnft__sandbox.svelte-1bwdt9k{background-color:white;border:none;width:100%;height:100%;position:relative}iframe.svelte-1bwdt9k{width:100%;height:100%;border:none;display:block}.greyed-out.svelte-1bwdt9k{filter:grayscale(50%) blur(1px);opacity:0.25}.beyondnft__sandbox__error.svelte-1bwdt9k{font-size:0.9em;position:absolute;top:0;left:0;padding:5px}",a(document.head,e)),J(this,n,B,Y,s,{code:6,proxy:5,json:7,owner_properties:8,sandbox_props:0});}}function H(e){let t;return {c(){t=d("Loading...");},m(n,e){i(n,t,e);},p:n,i:n,o:n,d(n){n&&c(t);}}}function I(n){let e,t,o;function r(e){n[6].call(null,e);}let s={code:n[1],owner_properties:n[2],sandbox_props:n[3],json:n[0]};return void 0!==n[4]&&(s.proxy=n[4]),e=new q({props:s}),b.push((()=>function(n,e,t){const o=n.$$.props[e];void 0!==o&&(n.$$.bound[o]=t,t(n.$$.ctx[o]));}(e,"proxy",r))),e.$on("loaded",n[7]),e.$on("error",n[8]),{c(){var n;(n=e.$$.fragment)&&n.c();},m(n,t){S(e,n,t),o=!0;},p(n,o){const r={};var s;2&o&&(r.code=n[1]),4&o&&(r.owner_properties=n[2]),8&o&&(r.sandbox_props=n[3]),1&o&&(r.json=n[0]),!t&&16&o&&(t=!0,r.proxy=n[4],s=()=>t=!1,w.push(s)),e.$set(r);},i(n){o||(L(e.$$.fragment,n),o=!0);},o(n){O(e.$$.fragment,n),o=!1;},d(n){T(e,n);}}}function G(n){let e,t,r,s;const a=[I,H],l=[];function u(n,e){return n[1]?0:1}return e=u(n),t=l[e]=a[e](n),{c(){t.c(),r=d("");},m(n,t){l[e].m(n,t),i(n,r,t),s=!0;},p(n,[s]){let i=e;e=u(n),e===i?l[e].p(n,s):(C={r:0,c:[],p:C},O(l[i],1,1,(()=>{l[i]=null;})),C.r||o(C.c),C=C.p,t=l[e],t||(t=l[e]=a[e](n),t.c()),L(t,1),t.m(r.parentNode,r));},i(n){s||(L(t),s=!0);},o(n){O(t),s=!1;},d(n){l[e].d(n),n&&c(r);}}}function Q(n,e,t){const o=m();let{data:r={}}=e,{code:s=""}=e,{owner_properties:a=[]}=e,{sandbox_props:i=""}=e,c=null;return !s&&r.interactive_nft?r.interactive_nft.code?(s=r.interactive_nft.code,r.interactive_nft.code=null):r.interactive_nft.code_uri?fetch(r.interactive_nft.code_uri).then((n=>n.text())).then((n=>t(1,s=n))).catch((n=>{o("Error",new Error("Error while fetching "+r.interactive_nft.code_uri));})):o("Error",new Error("You need to provide code for this NFT to run")):o("Error",new Error("You need to provide code for this NFT to run")),n.$$set=n=>{"data"in n&&t(0,r=n.data),"code"in n&&t(1,s=n.code),"owner_properties"in n&&t(2,a=n.owner_properties),"sandbox_props"in n&&t(3,i=n.sandbox_props);},[r,s,a,i,c,function(){return c},function(n){c=n,t(4,c);},function(e){h(n,e);},function(e){h(n,e);}]}class Sandbox extends P{constructor(n){super(),J(this,n,Q,G,s,{data:0,code:1,owner_properties:2,sandbox_props:3,getProxy:5});}get getProxy(){return this.$$.ctx[5]}}
 
 /* src/components/Token.svelte generated by Svelte v3.29.4 */
-const file = "src/components/Token.svelte";
 
-function add_css$1() {
+function add_css() {
 	var style = element("style");
 	style.id = "svelte-lh0bc7-style";
-	style.textContent = ".beyondembeddable__wrapper.resizable.svelte-lh0bc7.svelte-lh0bc7{position:relative}em.svelte-lh0bc7.svelte-lh0bc7{position:absolute;top:100%;font-size:0.8em;right:0;z-index:0}.beyondembeddable__sandbox.svelte-lh0bc7.svelte-lh0bc7{width:100%;height:100%}.beyondembeddable__wrapper.resizable.svelte-lh0bc7 .beyondembeddable__sandbox.svelte-lh0bc7{position:absolute;top:0;left:0;right:0;bottom:0;min-width:100%;min-height:100%;z-index:1;resize:both;overflow:auto}img.svelte-lh0bc7.svelte-lh0bc7{width:100%;height:auto}\n/*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVG9rZW4uc3ZlbHRlIiwic291cmNlcyI6WyJUb2tlbi5zdmVsdGUiXSwic291cmNlc0NvbnRlbnQiOlsiPHNjcmlwdD5cbiAgaW1wb3J0IHsgY3JlYXRlRXZlbnREaXNwYXRjaGVyLCBvbk1vdW50IH0gZnJvbSAnc3ZlbHRlJztcbiAgaW1wb3J0IFNhbmRib3ggZnJvbSAnLi4vLi4vLi4vLi4vLi4vc3ZlbHRlL2NvZGUtc2FuZGJveC9kaXN0L25mdHNhbmRib3guZXMuanMnO1xuXG4gIGV4cG9ydCBsZXQgdXJpcztcbiAgZXhwb3J0IGxldCByZXNpemFibGU7XG4gIGV4cG9ydCBsZXQgd2lkdGg7XG4gIGV4cG9ydCBsZXQgaGVpZ2h0O1xuXG4gIGNvbnN0IGRpc3BhdGNoID0gY3JlYXRlRXZlbnREaXNwYXRjaGVyKCk7XG5cbiAgbGV0IGxvYWRlZCA9IGZhbHNlO1xuICBsZXQganNvbjtcbiAgbGV0IG93bmVyX3Byb3BlcnRpZXMgPSB7fTtcbiAgbGV0IHZpZXc7XG5cbiAgJDoge1xuICAgIGlmIChsb2FkZWQgJiYgdmlldykge1xuICAgICAgaWYgKGpzb24uaW50ZXJhY3RpdmVfbmZ0KSB7XG4gICAgICAgIG5ldyBTYW5kYm94KHtcbiAgICAgICAgICB0YXJnZXQ6IHZpZXcsXG4gICAgICAgICAgcHJvcHM6IHtcbiAgICAgICAgICAgIGRhdGE6IGpzb24sXG4gICAgICAgICAgICBvd25lcl9wcm9wZXJ0aWVzLFxuICAgICAgICAgIH0sXG4gICAgICAgIH0pO1xuICAgICAgfVxuICAgIH1cbiAgfVxuXG4gIG9uTW91bnQoYXN5bmMgKCkgPT4ge1xuICAgIHRyeSB7XG4gICAgICBsZXQgcmVzO1xuICAgICAgaWYgKHVyaXMudG9rZW5VUkkpIHtcbiAgICAgICAgcmVzID0gYXdhaXQgZmV0Y2godXJpcy50b2tlblVSSSk7XG4gICAgICAgIGpzb24gPSBhd2FpdCByZXMuanNvbigpO1xuICAgICAgfVxuXG4gICAgICBpZiAodXJpcy5pbnRlcmFjdGl2ZUNvbmZVUkkpIHtcbiAgICAgICAgcmVzID0gYXdhaXQgZmV0Y2godXJpcy5pbnRlcmFjdGl2ZUNvbmZVUkkpO1xuICAgICAgICBvd25lcl9wcm9wZXJ0aWVzID0gYXdhaXQgcmVzLmpzb24oKTtcbiAgICAgIH1cblxuICAgICAgbG9hZGVkID0gdHJ1ZTtcbiAgICB9IGNhdGNoIChlKSB7XG4gICAgICBkaXNwYXRjaCgnZXJyb3InLCAnRXJyb3Igd2hpbGUgbG9hZGluZyBORlQgSlNPTnMuJyk7XG4gICAgfVxuICB9KTtcbjwvc2NyaXB0PlxuXG48c3R5bGU+XG4gIC5iZXlvbmRlbWJlZGRhYmxlX193cmFwcGVyLnJlc2l6YWJsZSB7XG4gICAgcG9zaXRpb246IHJlbGF0aXZlO1xuICB9XG5cbiAgZW0ge1xuICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTtcbiAgICB0b3A6IDEwMCU7XG4gICAgZm9udC1zaXplOiAwLjhlbTtcbiAgICByaWdodDogMDtcbiAgICB6LWluZGV4OiAwO1xuICB9XG5cbiAgLmJleW9uZGVtYmVkZGFibGVfX3NhbmRib3gge1xuICAgIHdpZHRoOiAxMDAlO1xuICAgIGhlaWdodDogMTAwJTtcbiAgfVxuXG4gIC5iZXlvbmRlbWJlZGRhYmxlX193cmFwcGVyLnJlc2l6YWJsZSAuYmV5b25kZW1iZWRkYWJsZV9fc2FuZGJveCB7XG4gICAgcG9zaXRpb246IGFic29sdXRlO1xuICAgIHRvcDogMDtcbiAgICBsZWZ0OiAwO1xuICAgIHJpZ2h0OiAwO1xuICAgIGJvdHRvbTogMDtcbiAgICBtaW4td2lkdGg6IDEwMCU7XG4gICAgbWluLWhlaWdodDogMTAwJTtcbiAgICB6LWluZGV4OiAxO1xuICAgIHJlc2l6ZTogYm90aDtcbiAgICBvdmVyZmxvdzogYXV0bztcbiAgfVxuXG4gIGltZyB7XG4gICAgd2lkdGg6IDEwMCU7XG4gICAgaGVpZ2h0OiBhdXRvO1xuICB9XG48L3N0eWxlPlxuXG57I2lmICFsb2FkZWR9XG4gIExvYWRpbmcuLi5cbns6ZWxzZX1cbiAgPGRpdlxuICAgIGNsYXNzPVwiYmV5b25kZW1iZWRkYWJsZV9fd3JhcHBlclwiXG4gICAgY2xhc3M6cmVzaXphYmxlXG4gICAgc3R5bGU9e2B3aWR0aDogJHt3aWR0aH07IGhlaWdodDogJHtoZWlnaHR9YH0+XG4gICAgeyNpZiBqc29uLmludGVyYWN0aXZlX25mdH1cbiAgICAgIDxkaXYgY2xhc3M9XCJiZXlvbmRlbWJlZGRhYmxlX19zYW5kYm94XCIgYmluZDp0aGlzPXt2aWV3fSAvPlxuICAgICAgeyNpZiByZXNpemFibGV9PGVtPnJlc2l6ZSBpZiBuZWVkZWQ8L2VtPnsvaWZ9XG4gICAgezplbHNlfVxuICAgICAgPCEtLSBUT0RPOiBpbnRlZ3JhdGUgb3RoZXIgdHlwZXMgb2YgTkZUIC0tPlxuICAgICAgPGltZ1xuICAgICAgICBjbGFzcz1cImJleW9uZGVtYmVkZGFibGVfX2ZhbGxiYWNrXCJcbiAgICAgICAgc3JjPXtqc29uLmltYWdlLnJlcGxhY2UoJ2lwZnM6Ly8nLCAnaHR0cHM6Ly9nYXRld2F5LmlwZnMuaW8vJyl9XG4gICAgICAgIGFsdD17anNvbi5uYW1lfSAvPlxuICAgIHsvaWZ9XG4gIDwvZGl2Plxuey9pZn1cbiJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFtREUsMEJBQTBCLFVBQVUsNEJBQUMsQ0FBQyxBQUNwQyxRQUFRLENBQUUsUUFBUSxBQUNwQixDQUFDLEFBRUQsRUFBRSw0QkFBQyxDQUFDLEFBQ0YsUUFBUSxDQUFFLFFBQVEsQ0FDbEIsR0FBRyxDQUFFLElBQUksQ0FDVCxTQUFTLENBQUUsS0FBSyxDQUNoQixLQUFLLENBQUUsQ0FBQyxDQUNSLE9BQU8sQ0FBRSxDQUFDLEFBQ1osQ0FBQyxBQUVELDBCQUEwQiw0QkFBQyxDQUFDLEFBQzFCLEtBQUssQ0FBRSxJQUFJLENBQ1gsTUFBTSxDQUFFLElBQUksQUFDZCxDQUFDLEFBRUQsMEJBQTBCLHdCQUFVLENBQUMsMEJBQTBCLGNBQUMsQ0FBQyxBQUMvRCxRQUFRLENBQUUsUUFBUSxDQUNsQixHQUFHLENBQUUsQ0FBQyxDQUNOLElBQUksQ0FBRSxDQUFDLENBQ1AsS0FBSyxDQUFFLENBQUMsQ0FDUixNQUFNLENBQUUsQ0FBQyxDQUNULFNBQVMsQ0FBRSxJQUFJLENBQ2YsVUFBVSxDQUFFLElBQUksQ0FDaEIsT0FBTyxDQUFFLENBQUMsQ0FDVixNQUFNLENBQUUsSUFBSSxDQUNaLFFBQVEsQ0FBRSxJQUFJLEFBQ2hCLENBQUMsQUFFRCxHQUFHLDRCQUFDLENBQUMsQUFDSCxLQUFLLENBQUUsSUFBSSxDQUNYLE1BQU0sQ0FBRSxJQUFJLEFBQ2QsQ0FBQyJ9 */";
-	append_dev(document.head, style);
+	style.textContent = ".beyondembeddable__wrapper.resizable.svelte-lh0bc7.svelte-lh0bc7{position:relative}em.svelte-lh0bc7.svelte-lh0bc7{position:absolute;top:100%;font-size:0.8em;right:0;z-index:0}.beyondembeddable__sandbox.svelte-lh0bc7.svelte-lh0bc7{width:100%;height:100%}.beyondembeddable__wrapper.resizable.svelte-lh0bc7 .beyondembeddable__sandbox.svelte-lh0bc7{position:absolute;top:0;left:0;right:0;bottom:0;min-width:100%;min-height:100%;z-index:1;resize:both;overflow:auto}img.svelte-lh0bc7.svelte-lh0bc7{width:100%;height:auto}";
+	append(document.head, style);
 }
 
 // (90:0) {:else}
-function create_else_block$1(ctx) {
+function create_else_block(ctx) {
 	let div;
 	let div_style_value;
 
@@ -1618,20 +604,19 @@ function create_else_block$1(ctx) {
 	let current_block_type = select_block_type_1(ctx);
 	let if_block = current_block_type(ctx);
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			div = element("div");
 			if_block.c();
-			attr_dev(div, "class", "beyondembeddable__wrapper svelte-lh0bc7");
-			attr_dev(div, "style", div_style_value = `width: ${/*width*/ ctx[1]}; height: ${/*height*/ ctx[2]}`);
+			attr(div, "class", "beyondembeddable__wrapper svelte-lh0bc7");
+			attr(div, "style", div_style_value = `width: ${/*width*/ ctx[1]}; height: ${/*height*/ ctx[2]}`);
 			toggle_class(div, "resizable", /*resizable*/ ctx[0]);
-			add_location(div, file, 90, 2, 1605);
 		},
-		m: function mount(target, anchor) {
-			insert_dev(target, div, anchor);
+		m(target, anchor) {
+			insert(target, div, anchor);
 			if_block.m(div, null);
 		},
-		p: function update(ctx, dirty) {
+		p(ctx, dirty) {
 			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block) {
 				if_block.p(ctx, dirty);
 			} else {
@@ -1645,56 +630,36 @@ function create_else_block$1(ctx) {
 			}
 
 			if (dirty & /*width, height*/ 6 && div_style_value !== (div_style_value = `width: ${/*width*/ ctx[1]}; height: ${/*height*/ ctx[2]}`)) {
-				attr_dev(div, "style", div_style_value);
+				attr(div, "style", div_style_value);
 			}
 
 			if (dirty & /*resizable*/ 1) {
 				toggle_class(div, "resizable", /*resizable*/ ctx[0]);
 			}
 		},
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(div);
+		d(detaching) {
+			if (detaching) detach(div);
 			if_block.d();
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_else_block$1.name,
-		type: "else",
-		source: "(90:0) {:else}",
-		ctx
-	});
-
-	return block;
 }
 
 // (88:0) {#if !loaded}
-function create_if_block$1(ctx) {
+function create_if_block(ctx) {
 	let t;
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			t = text("Loading...");
 		},
-		m: function mount(target, anchor) {
-			insert_dev(target, t, anchor);
+		m(target, anchor) {
+			insert(target, t, anchor);
 		},
 		p: noop,
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(t);
+		d(detaching) {
+			if (detaching) detach(t);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_if_block$1.name,
-		type: "if",
-		source: "(88:0) {#if !loaded}",
-		ctx
-	});
-
-	return block;
 }
 
 // (98:4) {:else}
@@ -1703,40 +668,29 @@ function create_else_block_1(ctx) {
 	let img_src_value;
 	let img_alt_value;
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			img = element("img");
-			attr_dev(img, "class", "beyondembeddable__fallback svelte-lh0bc7");
-			if (img.src !== (img_src_value = /*json*/ ctx[4].image.replace("ipfs://", "https://gateway.ipfs.io/"))) attr_dev(img, "src", img_src_value);
-			attr_dev(img, "alt", img_alt_value = /*json*/ ctx[4].name);
-			add_location(img, file, 99, 6, 1934);
+			attr(img, "class", "beyondembeddable__fallback svelte-lh0bc7");
+			if (img.src !== (img_src_value = /*json*/ ctx[4].image.replace("ipfs://", "https://gateway.ipfs.io/"))) attr(img, "src", img_src_value);
+			attr(img, "alt", img_alt_value = /*json*/ ctx[4].name);
 		},
-		m: function mount(target, anchor) {
-			insert_dev(target, img, anchor);
+		m(target, anchor) {
+			insert(target, img, anchor);
 		},
-		p: function update(ctx, dirty) {
+		p(ctx, dirty) {
 			if (dirty & /*json*/ 16 && img.src !== (img_src_value = /*json*/ ctx[4].image.replace("ipfs://", "https://gateway.ipfs.io/"))) {
-				attr_dev(img, "src", img_src_value);
+				attr(img, "src", img_src_value);
 			}
 
 			if (dirty & /*json*/ 16 && img_alt_value !== (img_alt_value = /*json*/ ctx[4].name)) {
-				attr_dev(img, "alt", img_alt_value);
+				attr(img, "alt", img_alt_value);
 			}
 		},
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(img);
+		d(detaching) {
+			if (detaching) detach(img);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_else_block_1.name,
-		type: "else",
-		source: "(98:4) {:else}",
-		ctx
-	});
-
-	return block;
 }
 
 // (95:4) {#if json.interactive_nft}
@@ -1744,28 +698,27 @@ function create_if_block_1(ctx) {
 	let div;
 	let t;
 	let if_block_anchor;
-	let if_block = /*resizable*/ ctx[0] && create_if_block_2(ctx);
+	let if_block = /*resizable*/ ctx[0] && create_if_block_2();
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			div = element("div");
 			t = space();
 			if (if_block) if_block.c();
 			if_block_anchor = empty();
-			attr_dev(div, "class", "beyondembeddable__sandbox svelte-lh0bc7");
-			add_location(div, file, 95, 6, 1755);
+			attr(div, "class", "beyondembeddable__sandbox svelte-lh0bc7");
 		},
-		m: function mount(target, anchor) {
-			insert_dev(target, div, anchor);
+		m(target, anchor) {
+			insert(target, div, anchor);
 			/*div_binding*/ ctx[7](div);
-			insert_dev(target, t, anchor);
+			insert(target, t, anchor);
 			if (if_block) if_block.m(target, anchor);
-			insert_dev(target, if_block_anchor, anchor);
+			insert(target, if_block_anchor, anchor);
 		},
-		p: function update(ctx, dirty) {
+		p(ctx, dirty) {
 			if (/*resizable*/ ctx[0]) {
 				if (if_block) ; else {
-					if_block = create_if_block_2(ctx);
+					if_block = create_if_block_2();
 					if_block.c();
 					if_block.m(if_block_anchor.parentNode, if_block_anchor);
 				}
@@ -1774,80 +727,56 @@ function create_if_block_1(ctx) {
 				if_block = null;
 			}
 		},
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(div);
+		d(detaching) {
+			if (detaching) detach(div);
 			/*div_binding*/ ctx[7](null);
-			if (detaching) detach_dev(t);
+			if (detaching) detach(t);
 			if (if_block) if_block.d(detaching);
-			if (detaching) detach_dev(if_block_anchor);
+			if (detaching) detach(if_block_anchor);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_if_block_1.name,
-		type: "if",
-		source: "(95:4) {#if json.interactive_nft}",
-		ctx
-	});
-
-	return block;
 }
 
 // (97:6) {#if resizable}
 function create_if_block_2(ctx) {
 	let em;
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			em = element("em");
 			em.textContent = "resize if needed";
-			attr_dev(em, "class", "svelte-lh0bc7");
-			add_location(em, file, 96, 21, 1835);
+			attr(em, "class", "svelte-lh0bc7");
 		},
-		m: function mount(target, anchor) {
-			insert_dev(target, em, anchor);
+		m(target, anchor) {
+			insert(target, em, anchor);
 		},
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(em);
+		d(detaching) {
+			if (detaching) detach(em);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_if_block_2.name,
-		type: "if",
-		source: "(97:6) {#if resizable}",
-		ctx
-	});
-
-	return block;
 }
 
-function create_fragment$2(ctx) {
+function create_fragment(ctx) {
 	let if_block_anchor;
 
 	function select_block_type(ctx, dirty) {
-		if (!/*loaded*/ ctx[3]) return create_if_block$1;
-		return create_else_block$1;
+		if (!/*loaded*/ ctx[3]) return create_if_block;
+		return create_else_block;
 	}
 
 	let current_block_type = select_block_type(ctx);
 	let if_block = current_block_type(ctx);
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			if_block.c();
 			if_block_anchor = empty();
 		},
-		l: function claim(nodes) {
-			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-		},
-		m: function mount(target, anchor) {
+		m(target, anchor) {
 			if_block.m(target, anchor);
-			insert_dev(target, if_block_anchor, anchor);
+			insert(target, if_block_anchor, anchor);
 		},
-		p: function update(ctx, [dirty]) {
+		p(ctx, [dirty]) {
 			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
 				if_block.p(ctx, dirty);
 			} else {
@@ -1862,26 +791,14 @@ function create_fragment$2(ctx) {
 		},
 		i: noop,
 		o: noop,
-		d: function destroy(detaching) {
+		d(detaching) {
 			if_block.d(detaching);
-			if (detaching) detach_dev(if_block_anchor);
+			if (detaching) detach(if_block_anchor);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_fragment$2.name,
-		type: "component",
-		source: "",
-		ctx
-	});
-
-	return block;
 }
 
-function instance$2($$self, $$props, $$invalidate) {
-	let { $$slots: slots = {}, $$scope } = $$props;
-	validate_slots("Token", slots, []);
+function instance($$self, $$props, $$invalidate) {
 	let { uris } = $$props;
 	let { resizable } = $$props;
 	let { width } = $$props;
@@ -1912,12 +829,6 @@ function instance$2($$self, $$props, $$invalidate) {
 		}
 	});
 
-	const writable_props = ["uris", "resizable", "width", "height"];
-
-	Object.keys($$props).forEach(key => {
-		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Token> was created with unknown prop '${key}'`);
-	});
-
 	function div_binding($$value) {
 		binding_callbacks[$$value ? "unshift" : "push"](() => {
 			view = $$value;
@@ -1932,42 +843,12 @@ function instance$2($$self, $$props, $$invalidate) {
 		if ("height" in $$props) $$invalidate(2, height = $$props.height);
 	};
 
-	$$self.$capture_state = () => ({
-		createEventDispatcher,
-		onMount,
-		Sandbox: App,
-		uris,
-		resizable,
-		width,
-		height,
-		dispatch,
-		loaded,
-		json,
-		owner_properties,
-		view
-	});
-
-	$$self.$inject_state = $$props => {
-		if ("uris" in $$props) $$invalidate(6, uris = $$props.uris);
-		if ("resizable" in $$props) $$invalidate(0, resizable = $$props.resizable);
-		if ("width" in $$props) $$invalidate(1, width = $$props.width);
-		if ("height" in $$props) $$invalidate(2, height = $$props.height);
-		if ("loaded" in $$props) $$invalidate(3, loaded = $$props.loaded);
-		if ("json" in $$props) $$invalidate(4, json = $$props.json);
-		if ("owner_properties" in $$props) $$invalidate(8, owner_properties = $$props.owner_properties);
-		if ("view" in $$props) $$invalidate(5, view = $$props.view);
-	};
-
-	if ($$props && "$$inject" in $$props) {
-		$$self.$inject_state($$props.$$inject);
-	}
-
 	$$self.$$.update = () => {
 		if ($$self.$$.dirty & /*loaded, view, json, owner_properties*/ 312) {
 			 {
 				if (loaded && view) {
 					if (json.interactive_nft) {
-						new App({
+						new Sandbox({
 								target: view,
 								props: { data: json, owner_properties }
 							});
@@ -1980,82 +861,22 @@ function instance$2($$self, $$props, $$invalidate) {
 	return [resizable, width, height, loaded, json, view, uris, div_binding];
 }
 
-class Token extends SvelteComponentDev {
+class Token extends SvelteComponent {
 	constructor(options) {
-		super(options);
-		if (!document.getElementById("svelte-lh0bc7-style")) add_css$1();
+		super();
+		if (!document.getElementById("svelte-lh0bc7-style")) add_css();
 
-		init(this, options, instance$2, create_fragment$2, safe_not_equal, {
+		init(this, options, instance, create_fragment, safe_not_equal, {
 			uris: 6,
 			resizable: 0,
 			width: 1,
 			height: 2
 		});
-
-		dispatch_dev("SvelteRegisterComponent", {
-			component: this,
-			tagName: "Token",
-			options,
-			id: create_fragment$2.name
-		});
-
-		const { ctx } = this.$$;
-		const props = options.props || {};
-
-		if (/*uris*/ ctx[6] === undefined && !("uris" in props)) {
-			console.warn("<Token> was created without expected prop 'uris'");
-		}
-
-		if (/*resizable*/ ctx[0] === undefined && !("resizable" in props)) {
-			console.warn("<Token> was created without expected prop 'resizable'");
-		}
-
-		if (/*width*/ ctx[1] === undefined && !("width" in props)) {
-			console.warn("<Token> was created without expected prop 'width'");
-		}
-
-		if (/*height*/ ctx[2] === undefined && !("height" in props)) {
-			console.warn("<Token> was created without expected prop 'height'");
-		}
-	}
-
-	get uris() {
-		throw new Error("<Token>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set uris(value) {
-		throw new Error("<Token>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get resizable() {
-		throw new Error("<Token>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set resizable(value) {
-		throw new Error("<Token>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get width() {
-		throw new Error("<Token>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set width(value) {
-		throw new Error("<Token>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get height() {
-		throw new Error("<Token>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set height(value) {
-		throw new Error("<Token>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
 	}
 }
 
 /* src/Embeddable.svelte generated by Svelte v3.29.4 */
-const file$1 = "src/Embeddable.svelte";
 
-// (49:19) 
 function create_if_block_1$1(ctx) {
 	let token;
 	let current;
@@ -2066,21 +887,20 @@ function create_if_block_1$1(ctx) {
 				resizable: /*resizable*/ ctx[0],
 				width: /*width*/ ctx[1],
 				height: /*height*/ ctx[2]
-			},
-			$$inline: true
+			}
 		});
 
 	token.$on("error", /*error_handler*/ ctx[9]);
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			create_component(token.$$.fragment);
 		},
-		m: function mount(target, anchor) {
+		m(target, anchor) {
 			mount_component(token, target, anchor);
 			current = true;
 		},
-		p: function update(ctx, dirty) {
+		p(ctx, dirty) {
 			const token_changes = {};
 			if (dirty & /*uris*/ 32) token_changes.uris = /*uris*/ ctx[5];
 			if (dirty & /*resizable*/ 1) token_changes.resizable = /*resizable*/ ctx[0];
@@ -2088,74 +908,53 @@ function create_if_block_1$1(ctx) {
 			if (dirty & /*height*/ 4) token_changes.height = /*height*/ ctx[2];
 			token.$set(token_changes);
 		},
-		i: function intro(local) {
+		i(local) {
 			if (current) return;
 			transition_in(token.$$.fragment, local);
 			current = true;
 		},
-		o: function outro(local) {
+		o(local) {
 			transition_out(token.$$.fragment, local);
 			current = false;
 		},
-		d: function destroy(detaching) {
+		d(detaching) {
 			destroy_component(token, detaching);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_if_block_1$1.name,
-		type: "if",
-		source: "(49:19) ",
-		ctx
-	});
-
-	return block;
 }
 
 // (47:2) {#if error}
-function create_if_block$2(ctx) {
+function create_if_block$1(ctx) {
 	let p;
 	let t;
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			p = element("p");
 			t = text(/*error*/ ctx[4]);
-			attr_dev(p, "class", "beyondembeddable__error");
-			add_location(p, file$1, 47, 4, 989);
+			attr(p, "class", "beyondembeddable__error");
 		},
-		m: function mount(target, anchor) {
-			insert_dev(target, p, anchor);
-			append_dev(p, t);
+		m(target, anchor) {
+			insert(target, p, anchor);
+			append(p, t);
 		},
-		p: function update(ctx, dirty) {
-			if (dirty & /*error*/ 16) set_data_dev(t, /*error*/ ctx[4]);
+		p(ctx, dirty) {
+			if (dirty & /*error*/ 16) set_data(t, /*error*/ ctx[4]);
 		},
 		i: noop,
 		o: noop,
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(p);
+		d(detaching) {
+			if (detaching) detach(p);
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_if_block$2.name,
-		type: "if",
-		source: "(47:2) {#if error}",
-		ctx
-	});
-
-	return block;
 }
 
-function create_fragment$3(ctx) {
+function create_fragment$1(ctx) {
 	let div;
 	let current_block_type_index;
 	let if_block;
 	let current;
-	const if_block_creators = [create_if_block$2, create_if_block_1$1];
+	const if_block_creators = [create_if_block$1, create_if_block_1$1];
 	const if_blocks = [];
 
 	function select_block_type(ctx, dirty) {
@@ -2168,18 +967,14 @@ function create_fragment$3(ctx) {
 		if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 	}
 
-	const block = {
-		c: function create() {
+	return {
+		c() {
 			div = element("div");
 			if (if_block) if_block.c();
-			attr_dev(div, "class", "beyondembeddable");
-			add_location(div, file$1, 45, 0, 940);
+			attr(div, "class", "beyondembeddable");
 		},
-		l: function claim(nodes) {
-			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-		},
-		m: function mount(target, anchor) {
-			insert_dev(target, div, anchor);
+		m(target, anchor) {
+			insert(target, div, anchor);
 
 			if (~current_block_type_index) {
 				if_blocks[current_block_type_index].m(div, null);
@@ -2187,7 +982,7 @@ function create_fragment$3(ctx) {
 
 			current = true;
 		},
-		p: function update(ctx, [dirty]) {
+		p(ctx, [dirty]) {
 			let previous_block_index = current_block_type_index;
 			current_block_type_index = select_block_type(ctx);
 
@@ -2221,38 +1016,26 @@ function create_fragment$3(ctx) {
 				}
 			}
 		},
-		i: function intro(local) {
+		i(local) {
 			if (current) return;
 			transition_in(if_block);
 			current = true;
 		},
-		o: function outro(local) {
+		o(local) {
 			transition_out(if_block);
 			current = false;
 		},
-		d: function destroy(detaching) {
-			if (detaching) detach_dev(div);
+		d(detaching) {
+			if (detaching) detach(div);
 
 			if (~current_block_type_index) {
 				if_blocks[current_block_type_index].d();
 			}
 		}
 	};
-
-	dispatch_dev("SvelteRegisterBlock", {
-		block,
-		id: create_fragment$3.name,
-		type: "component",
-		source: "",
-		ctx
-	});
-
-	return block;
 }
 
-function instance$3($$self, $$props, $$invalidate) {
-	let { $$slots: slots = {}, $$scope } = $$props;
-	validate_slots("Embeddable", slots, []);
+function instance$1($$self, $$props, $$invalidate) {
 	let { contract } = $$props;
 	let { tokenId = null } = $$props;
 	let { network = Networks.mainnet } = $$props;
@@ -2282,12 +1065,6 @@ function instance$3($$self, $$props, $$invalidate) {
 		}
 	}
 
-	const writable_props = ["contract", "tokenId", "network", "resizable", "width", "height"];
-
-	Object.keys($$props).forEach(key => {
-		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Embeddable> was created with unknown prop '${key}'`);
-	});
-
 	const error_handler = e => $$invalidate(4, error = e.detail.message);
 
 	$$self.$$set = $$props => {
@@ -2298,42 +1075,6 @@ function instance$3($$self, $$props, $$invalidate) {
 		if ("width" in $$props) $$invalidate(1, width = $$props.width);
 		if ("height" in $$props) $$invalidate(2, height = $$props.height);
 	};
-
-	$$self.$capture_state = () => ({
-		Proxy: Proxy$1,
-		Networks,
-		Token,
-		contract,
-		tokenId,
-		network,
-		resizable,
-		width,
-		height,
-		chaindId,
-		loaded,
-		error,
-		proxy,
-		uris,
-		getURIs
-	});
-
-	$$self.$inject_state = $$props => {
-		if ("contract" in $$props) $$invalidate(6, contract = $$props.contract);
-		if ("tokenId" in $$props) $$invalidate(7, tokenId = $$props.tokenId);
-		if ("network" in $$props) $$invalidate(8, network = $$props.network);
-		if ("resizable" in $$props) $$invalidate(0, resizable = $$props.resizable);
-		if ("width" in $$props) $$invalidate(1, width = $$props.width);
-		if ("height" in $$props) $$invalidate(2, height = $$props.height);
-		if ("chaindId" in $$props) chaindId = $$props.chaindId;
-		if ("loaded" in $$props) $$invalidate(3, loaded = $$props.loaded);
-		if ("error" in $$props) $$invalidate(4, error = $$props.error);
-		if ("proxy" in $$props) proxy = $$props.proxy;
-		if ("uris" in $$props) $$invalidate(5, uris = $$props.uris);
-	};
-
-	if ($$props && "$$inject" in $$props) {
-		$$self.$inject_state($$props.$$inject);
-	}
 
 	$$self.$$.update = () => {
 		if ($$self.$$.dirty & /*contract, tokenId, uris*/ 224) {
@@ -2363,11 +1104,11 @@ function instance$3($$self, $$props, $$invalidate) {
 	];
 }
 
-class Embeddable extends SvelteComponentDev {
+class Embeddable extends SvelteComponent {
 	constructor(options) {
-		super(options);
+		super();
 
-		init(this, options, instance$3, create_fragment$3, safe_not_equal, {
+		init(this, options, instance$1, create_fragment$1, safe_not_equal, {
 			contract: 6,
 			tokenId: 7,
 			network: 8,
@@ -2375,68 +1116,6 @@ class Embeddable extends SvelteComponentDev {
 			width: 1,
 			height: 2
 		});
-
-		dispatch_dev("SvelteRegisterComponent", {
-			component: this,
-			tagName: "Embeddable",
-			options,
-			id: create_fragment$3.name
-		});
-
-		const { ctx } = this.$$;
-		const props = options.props || {};
-
-		if (/*contract*/ ctx[6] === undefined && !("contract" in props)) {
-			console.warn("<Embeddable> was created without expected prop 'contract'");
-		}
-	}
-
-	get contract() {
-		throw new Error("<Embeddable>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set contract(value) {
-		throw new Error("<Embeddable>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get tokenId() {
-		throw new Error("<Embeddable>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set tokenId(value) {
-		throw new Error("<Embeddable>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get network() {
-		throw new Error("<Embeddable>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set network(value) {
-		throw new Error("<Embeddable>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get resizable() {
-		throw new Error("<Embeddable>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set resizable(value) {
-		throw new Error("<Embeddable>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get width() {
-		throw new Error("<Embeddable>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set width(value) {
-		throw new Error("<Embeddable>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	get height() {
-		throw new Error("<Embeddable>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-	}
-
-	set height(value) {
-		throw new Error("<Embeddable>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
 	}
 }
 

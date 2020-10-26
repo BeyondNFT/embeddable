@@ -30,9 +30,9 @@ It requires a `target` (the html element to which it should attach) and an objec
   new Embeddable({
     target: document.querySelector('.viewer'),
     props: {
-      contract: '0x06012c8cf97bead5deae237070f9587f8e7a266d',
-      tokenId: '1',
-      network: 'mainnet', // can be a number, or a string (see src/conf/networks.js)
+      contract: '0x60f80121c31a0d46b5279700f9df786054aa5ee5',
+      tokenId: 49884,
+      network: 'mainnet', // can be a number or a string (see src/conf/networks.js)
       resizable: false,
       width: '400px',
       height: '600px',
