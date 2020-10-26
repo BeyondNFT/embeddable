@@ -23,10 +23,12 @@ It requires a `target` (the html element to which it should attach) and an objec
 
 ## Usage
 
+As a module from jsdeliver:
+
 ```html
 <div class="viewer"></div>
 <script type="module">
-  import Embeddable from 'https://cdnjs.cloudflare.com/ajax/libs/beyondnft/embeddable.es.min.js';
+  import Embeddable from 'https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.2/dist/embeddable.es.min.js';
   new Embeddable({
     target: document.querySelector('.viewer'),
     props: {
@@ -40,6 +42,8 @@ It requires a `target` (the html element to which it should attach) and an objec
   });
 </script>
 ```
+
+you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.2/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.2/dist/embeddable.umd.min.js)
 
 
 ## Development
