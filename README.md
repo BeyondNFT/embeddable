@@ -1,8 +1,8 @@
-# BeyondNFT - Embeddable Interactive NFT
+# BeyondNFT - Embeddable Dynamic NFTs
 
-Easily embed Interactive NFTs in your website!
+Easily embed Dynamic NFTss in your website!
 
-This was developed for the Untitled NFT Hackaton while working on a safe and hopefully in the future standard way to create interactive NFTs.
+This was developed for the Untitled NFT Hackaton while working on a safe and hopefully in the future standard way to create Dynamic NFTss.
 
 ## Component
 
