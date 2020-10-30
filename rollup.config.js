@@ -3,6 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
+import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
 
 import pkg from './package.json';
@@ -54,13 +55,13 @@ if (!production) {
     {
       file: pkg.module,
       format: 'es',
-      plugins: [production && terser()],
+      plugins: [terser()],
     },
     {
       file: pkg.main,
       format: 'umd',
       name,
-      plugins: [production && terser()],
+      plugins: [terser()],
     }
   );
 }
@@ -70,6 +71,14 @@ export default {
   output,
   plugins: [
     json(),
+    replace({
+      'process.env.NODE_ENV': JSON.stringify(
+        production ? 'production' : 'development'
+      ),
+      'process.env.npm_package_version': JSON.stringify(
+        process.env.npm_package_version
+      ),
+    }),
     svelte({
       // enable run-time checks when not in production
       dev: !production,

@@ -5,10 +5,12 @@
 
   export let contract;
   export let tokenId = null;
+  export let owner = null;
   export let network = Networks.mainnet;
   export let resizable = true;
   export let width = '388px';
   export let height = '560px';
+  export const version = process.env.npm_package_version;
 
   let chaindId = Networks.mainnet;
   if ('string' === typeof network && Networks[network]) {
@@ -48,6 +50,7 @@
     <p class="beyondembeddable__error">{error}</p>
   {:else if loaded}
     <Token
+      {owner}
       {uris}
       {resizable}
       {width}

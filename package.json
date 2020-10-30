@@ -8,14 +8,17 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
+    "version": "npm run build && git add .",
     "release": "np --no-2fa"
   },
   "devDependencies": {
-    "@beyondnft/sandbox": "0.0.2",
+    "@beyondnft/sandbox": "0.0.4",
     "@metamask/detect-provider": "^1.1.0",
     "@rollup/plugin-commonjs": "^14.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^8.0.0",
+    "@rollup/plugin-replace": "^2.3.4",
+    "np": "^7.0.0",
     "rollup": "^2.3.4",
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^6.0.0",

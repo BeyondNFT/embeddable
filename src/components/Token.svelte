@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import Sandbox from '@beyondnft/sandbox';
 
+  export let owner;
   export let uris;
   export let resizable;
   export let width;
@@ -17,12 +18,25 @@
   $: {
     if (loaded && view) {
       if (json.interactive_nft) {
-        new Sandbox({
+        const props = {
+          data: json,
+        };
+
+        if (owner) {
+          props.owner = owner;
+        }
+
+        if (owner_properties) {
+          props.owner_properties = owner_properties;
+        }
+
+        const sandbox = new Sandbox({
           target: view,
-          props: {
-            data: json,
-            owner_properties,
-          },
+          props,
+        });
+
+        sandbox.$on('error', (e) => {
+          dispatch('error', e.detail);
         });
       }
     }
