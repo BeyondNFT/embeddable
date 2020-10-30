@@ -43,7 +43,7 @@ As a module from jsdeliver:
 </script>
 ```
 
-you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.2/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.2/dist/embeddable.umd.min.js)
+you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.3/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.3/dist/embeddable.umd.min.js)
 
 
 ## Development
