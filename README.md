@@ -28,7 +28,7 @@ As a module from jsdeliver:
 ```html
 <div class="viewer"></div>
 <script type="module">
-  import Embeddable from 'https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.3/dist/embeddable.es.min.js';
+  import Embeddable from 'https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.4/dist/embeddable.es.min.js';
   new Embeddable({
     target: document.querySelector('.viewer'),
     props: {
@@ -43,7 +43,7 @@ As a module from jsdeliver:
 </script>
 ```
 
-you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.3/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.3/dist/embeddable.umd.min.js)
+you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.4/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.4/dist/embeddable.umd.min.js)
 
 
 ## Development
