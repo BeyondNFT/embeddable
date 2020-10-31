@@ -2,6 +2,7 @@
   import Proxy from './lib/Proxy';
   import Networks from './conf/networks';
   import Token from './components/Token.svelte';
+  import { createEventDispatcher } from 'svelte';
 
   export let contract;
   export let tokenId = null;
@@ -55,6 +56,7 @@
       {resizable}
       {width}
       {height}
+      on:loaded
       on:error={(e) => (error = e.detail.message)} />
   {/if}
 </div>

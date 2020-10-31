@@ -1,10 +1,11 @@
 import * as utils from '../utils';
+import { fromId } from '../conf/networks';
 
 export default class {
-  constructor(address, tokenId, chaindId) {
+  constructor(address, tokenId, chainId) {
     this.address = address;
     this.tokenId = tokenId;
-    this.chaindId = chaindId;
+    this.chainId = chainId;
 
     this.web3;
     this.provider;
@@ -15,11 +16,17 @@ export default class {
     this.web3 = detected.web3;
     this.provider = detected.provider;
 
+    this.provider.on('chainChanged', (e) => {
+      window.location.reload();
+    });
+
     // check that the chainId is the right one
-    let chaindId = await this.web3.eth.net.getId();
-    if (chaindId !== this.chaindId) {
+    let chainId = await this.web3.eth.net.getId();
+    if (chainId !== this.chainId) {
       throw new Error(
-        `Connected to the wrong network. Current{${chaindId}}; Expected{${this.chaindId}}`
+        `Connected to the wrong network. Current{${chainId}:${fromId(
+          chainId
+        )}}; Expected{${this.chainId}:${fromId(this.chainId)}}`
       );
     }
 

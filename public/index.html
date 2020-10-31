@@ -10,17 +10,20 @@
     <div class="viewer"></div>
     <script type="module">
       import Embeddable from './dist/embeddable.es.js';
-      new Embeddable({
+      const embed = new Embeddable({
         target: document.querySelector('.viewer'),
         props: {
-          contract: '0x60f80121c31a0d46b5279700f9df786054aa5ee5',
-          tokenId: 49884,
-          network: 1, // 'mainnet', 'rinkeby', 'ropsten', 'goerli', 'kovan' or an integer
+          contract: '0x220b237E884196A21eCeA9B18a103261d2C86870',
+          tokenId: 9,
+          network: 4, // 'mainnet', 'rinkeby', 'ropsten', 'goerli', 'kovan' or an integer
           // resizable: false,
           // width: '100px',
           // height: '100px',
         },
       });
+
+      embed.$on('loaded', (e) => console.log('loaded', e.detail));
+      embed.$on('error', (e) => console.log('error'));
     </script>
   </body>
 </html>

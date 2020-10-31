@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import Sandbox from '@beyondnft/sandbox';
+  //import Sandbox from '../../../sandbox/dist/nftsandbox.es.js';
 
   export let owner;
   export let uris;
@@ -15,30 +16,66 @@
   let owner_properties = {};
   let view;
 
-  $: {
-    if (loaded && view) {
-      if (json.interactive_nft) {
-        const props = {
-          data: json,
-        };
+  let size;
+  let proxy;
+  let sandbox;
 
-        if (owner) {
-          props.owner = owner;
-        }
+  let _width = width;
+  let _height = height;
 
-        if (owner_properties) {
-          props.owner_properties = owner_properties;
-        }
+  $: loaded && view && json.interactive_nft && !sandbox && makeSandbox();
+  function makeSandbox() {
+    const props = {
+      data: json,
+    };
 
-        const sandbox = new Sandbox({
-          target: view,
-          props,
-        });
+    if (owner) {
+      props.owner = owner;
+    }
 
-        sandbox.$on('error', (e) => {
-          dispatch('error', e.detail);
-        });
+    if (owner_properties) {
+      props.owner_properties = owner_properties;
+    }
+
+    sandbox = new Sandbox({
+      target: view,
+      props,
+    });
+
+    sandbox.$on('loaded', async (e) => {
+      if (resizable) {
+        proxy = sandbox.getProxy();
+        size = await proxy.size();
+        proxy.iframe.width = size.width;
+        proxy.iframe.height = size.height;
+        resize();
       }
+
+      dispatch('loaded', {
+        size,
+      });
+    });
+
+    sandbox.$on('error', (e) => {
+      dispatch('error', e.detail);
+    });
+  }
+
+  function resize() {
+    // scale the iframe to fit in current width
+    let ratio = Math.floor((parseInt(width) * 100) / size.width) / 100;
+    view.style.transform = `scale(${ratio}, ${ratio})`;
+  }
+
+  function toggleSize() {
+    view.style.transform = '';
+    if (_width === width) {
+      _width = size.width + 'px';
+      _height = size.height + 'px';
+    } else {
+      _width = width;
+      _height = height;
+      resize();
     }
   }
 
@@ -78,6 +115,7 @@
   .beyondembeddable__sandbox {
     width: 100%;
     height: 100%;
+    transform-origin: top left;
   }
 
   .beyondembeddable__wrapper.resizable .beyondembeddable__sandbox {
@@ -89,13 +127,15 @@
     min-width: 100%;
     min-height: 100%;
     z-index: 1;
-    resize: both;
-    overflow: auto;
   }
 
   img {
     width: 100%;
     height: auto;
+  }
+
+  em {
+    cursor: pointer;
   }
 </style>
 
@@ -105,10 +145,10 @@
   <div
     class="beyondembeddable__wrapper"
     class:resizable
-    style={`width: ${width}; height: ${height}`}>
+    style={`width: ${_width}; height: ${_height}`}>
     {#if json.interactive_nft}
       <div class="beyondembeddable__sandbox" bind:this={view} />
-      {#if resizable}<em>resize if needed</em>{/if}
+      {#if resizable}<em on:click={toggleSize}>toggle size</em>{/if}
     {:else}
       <!-- TODO: integrate other types of NFT -->
       <img
