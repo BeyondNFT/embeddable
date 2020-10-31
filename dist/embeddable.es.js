@@ -1096,7 +1096,7 @@ function instance$1($$self, $$props, $$invalidate) {
 	let { resizable = true } = $$props;
 	let { width = "388px" } = $$props;
 	let { height = "560px" } = $$props;
-	const version = "0.0.3";
+	const version = "0.0.4";
 	let chaindId = networks.mainnet;
 
 	if ("string" === typeof network && networks[network]) {
