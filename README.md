@@ -28,22 +28,23 @@ As a module from jsdeliver:
 ```html
 <div class="viewer"></div>
 <script type="module">
-  import Embeddable from 'https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.4/dist/embeddable.es.min.js';
+  import Embeddable from 'https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.5/dist/embeddable.es.min.js';
   new Embeddable({
     target: document.querySelector('.viewer'),
     props: {
-      contract: '0x60f80121c31a0d46b5279700f9df786054aa5ee5',
-      tokenId: 49884,
-      network: 'mainnet', // can be a number or a string (see src/conf/networks.js)
+      contract: '0x3a6504feb012cdff702019dd1f03d8cf99c029d9',
+      tokenId: 4,
+      network: 0x1, // 'mainnet', 'rinkeby', 'ropsten', 'goerli', 'kovan' or an integer
       fitContent: false,
-      width: '400px',
-      height: '600px',
+      width: '500px', // container size
+      height: '800px', // container size
     },
   });
+
 </script>
 ```
 
-you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.4/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.4/dist/embeddable.umd.min.js)
+you can also find the UMD version (will set Embeddable globally): [https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.5/dist/embeddable.umd.min.js](https://cdn.jsdelivr.net/npm/@beyondnft/embeddable@0.0.5/dist/embeddable.umd.min.js)
 
 
 ## Development
