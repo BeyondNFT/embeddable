@@ -1088,7 +1088,7 @@
     	let { width = "388px" } = $$props;
     	let { height = "560px" } = $$props;
     	let { ipfsGateway = "https://gateway.ipfs.io/" } = $$props;
-    	const version = "0.0.4";
+    	const version = "0.0.5";
     	let chaindId = networks.mainnet;
 
     	if ("string" === typeof network && networks[network]) {
