@@ -1,13 +1,13 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
+  import IPFS from '../conf/link.js';
   import Sandbox from '@beyondnft/sandbox';
-  //import Sandbox from '../../../sandbox/dist/nftsandbox.es.js';
 
   export let owner;
   export let uris;
-  export let resizable;
-  export let width;
-  export let height;
+  export let fitContent;
+  export let width = '100%';
+  export let height = '100%';
 
   const dispatch = createEventDispatcher();
 
@@ -25,6 +25,8 @@
 
   $: loaded && view && json.interactive_nft && !sandbox && makeSandbox();
   function makeSandbox() {
+    json.interactive_nft.code_uri = IPFS.process(json.interactive_nft.code_uri);
+
     const props = {
       data: json,
     };
@@ -43,11 +45,12 @@
     });
 
     sandbox.$on('loaded', async (e) => {
-      if (resizable) {
-        proxy = sandbox.getProxy();
-        size = await proxy.size();
-        proxy.iframe.width = size.width;
-        proxy.iframe.height = size.height;
+      proxy = sandbox.getProxy();
+      size = await proxy.size();
+      console.log(size);
+      proxy.iframe.width = size.width;
+      proxy.iframe.height = size.height;
+      if (fitContent) {
         resize();
       }
 
@@ -63,7 +66,10 @@
 
   function resize() {
     // scale the iframe to fit in current width
-    let ratio = Math.floor((parseInt(width) * 100) / size.width) / 100;
+    let wRatio = Math.floor((parseInt(width) * 100) / size.width) / 100;
+    let hRatio = Math.floor((parseInt(height) * 100) / size.height) / 100;
+    let ratio = Math.min(wRatio, hRatio);
+    console.log(wRatio, hRatio);
     view.style.transform = `scale(${ratio}, ${ratio})`;
   }
 
@@ -83,12 +89,12 @@
     try {
       let res;
       if (uris.tokenURI) {
-        res = await fetch(uris.tokenURI);
+        res = await fetch(IPFS.process(uris.tokenURI));
         json = await res.json();
       }
 
       if (uris.interactiveConfURI) {
-        res = await fetch(uris.interactiveConfURI);
+        res = await fetch(IPFS.process(uris.interactiveConfURI));
         owner_properties = await res.json();
       }
 
@@ -99,8 +105,29 @@
   });
 </script>
 
+{#if !loaded}
+  Loading...
+{:else}
+  <div
+    class="beyondembeddable__wrapper"
+    class:fitContent
+    style={`width: ${_width}; height: ${_height}`}
+  >
+    {#if json.interactive_nft}
+      <div class="beyondembeddable__sandbox" bind:this={view} />
+    {:else}
+      <!-- TODO: integrate other types of NFT -->
+      <img
+        class="beyondembeddable__fallback"
+        src={IPFS.process(json.image)}
+        alt={json.name}
+      />
+    {/if}
+  </div>
+{/if}
+
 <style>
-  .beyondembeddable__wrapper.resizable {
+  .beyondembeddable__wrapper {
     position: relative;
   }
 
@@ -118,7 +145,7 @@
     transform-origin: top left;
   }
 
-  .beyondembeddable__wrapper.resizable .beyondembeddable__sandbox {
+  .beyondembeddable__sandbox {
     position: absolute;
     top: 0;
     left: 0;
@@ -138,23 +165,3 @@
     cursor: pointer;
   }
 </style>
-
-{#if !loaded}
-  Loading...
-{:else}
-  <div
-    class="beyondembeddable__wrapper"
-    class:resizable
-    style={`width: ${_width}; height: ${_height}`}>
-    {#if json.interactive_nft}
-      <div class="beyondembeddable__sandbox" bind:this={view} />
-      {#if resizable}<em on:click={toggleSize}>toggle size</em>{/if}
-    {:else}
-      <!-- TODO: integrate other types of NFT -->
-      <img
-        class="beyondembeddable__fallback"
-        src={json.image.replace('ipfs://', 'https://gateway.ipfs.io/')}
-        alt={json.name} />
-    {/if}
-  </div>
-{/if}

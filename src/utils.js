@@ -2,7 +2,7 @@ import detectEthereumProvider from '@metamask/detect-provider';
 import abi from './conf/abi.js';
 
 export async function getProvider() {
-  if (!Web3 || Web3.version !== '1.3.0') {
+  if ('undefined' === typeof Web3 || Web3.version !== '1.3.0') {
     await loadWeb3();
   }
 

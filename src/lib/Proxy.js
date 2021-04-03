@@ -25,15 +25,14 @@ export default class {
     if (chainId !== this.chainId) {
       throw new Error(
         `Connected to the wrong network. Current{${chainId}:${fromId(
-          chainId
-        )}}; Expected{${this.chainId}:${fromId(this.chainId)}}`
+          chainId,
+        )}}; Expected{${this.chainId}:${fromId(this.chainId)}}`,
       );
     }
 
     this.instance = await utils.getContract(this.web3, this.address);
   }
 
-  // TODO: Manage call to ERC1155
   async uris() {
     try {
       const tokenURI = await this.tokenURI();
@@ -49,8 +48,23 @@ export default class {
     }
   }
 
+  // TODO: Manage call to ERC1155
   async tokenURI() {
-    return this.instance.methods.tokenURI(this.tokenId).call();
+    const ERC721Interface = '0x80ac58cd';
+    const ERC1155Interface = '0xd9b67a26';
+
+    if (await this.instance.methods.supportsInterface(ERC721Interface).call()) {
+      return this.instance.methods.tokenURI(this.tokenId).call();
+    } else if (
+      await this.instance.methods.supportsInterface(ERC1155Interface).call()
+    ) {
+      let uri = await this.instance.methods.uri(this.tokenId).call();
+      if (uri.indexOf('{id}') !== -1) {
+        const bnID = Web3.utils.toBN(this.tokenId).toString(16, 64);
+        uri = uri.replace('{id}', bnID);
+      }
+      return uri;
+    }
   }
 
   async interactiveConfURI() {

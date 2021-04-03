@@ -7,18 +7,19 @@
   </head>
 
   <body>
+    <style></style>
     <div class="viewer"></div>
     <script type="module">
       import Embeddable from './dist/embeddable.es.js';
       const embed = new Embeddable({
         target: document.querySelector('.viewer'),
         props: {
-          contract: '0x220b237E884196A21eCeA9B18a103261d2C86870',
-          tokenId: 9,
-          network: 4, // 'mainnet', 'rinkeby', 'ropsten', 'goerli', 'kovan' or an integer
-          // resizable: false,
-          // width: '100px',
-          // height: '100px',
+          contract: '0x3a6504feb012cdff702019dd1f03d8cf99c029d9',
+          tokenId: 4,
+          network: 0x1, // 'mainnet', 'rinkeby', 'ropsten', 'goerli', 'kovan' or an integer
+          fitContent: false,
+          width: '500px', // container size
+          height: '800px', // container size
         },
       });
 
