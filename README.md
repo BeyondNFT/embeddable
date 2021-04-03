@@ -16,7 +16,7 @@ It requires a `target` (the html element to which it should attach) and an objec
  - `contract` (required): contract address
  - `tokenId` (required): tokenId
  - `network` (optional): network to request to. Good to make sure the ucrrent user is on the right chain.
- - `resizable` (optional): If you allow the widow to be resizable. default true
+ - `fitContent` (optional): If you allow the window to try to fit the content automatically. default true
  - `width` (optional): width of the container. Default: 388px;
  - `height` (optional): width of the container. Default: 560px;
 
@@ -35,7 +35,7 @@ As a module from jsdeliver:
       contract: '0x60f80121c31a0d46b5279700f9df786054aa5ee5',
       tokenId: 49884,
       network: 'mainnet', // can be a number or a string (see src/conf/networks.js)
-      resizable: false,
+      fitContent: false,
       width: '400px',
       height: '600px',
     },
